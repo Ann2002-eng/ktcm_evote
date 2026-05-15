@@ -1,0 +1,42 @@
+# ============================================
+# .GITIGNORE — KTCM E-Vote System
+# Protects sensitive files from GitHub
+# ============================================
+
+# Database config (contains passwords — NEVER push this)
+config.php
+
+# Environment/local config
+.env
+*.env
+
+# Hash generator (security risk if public)
+hash_generator.php
+
+# Old database files
+database_fixed.sql
+database.sql
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+error_log
+
+# Uploaded files (if you add file upload feature)
+uploads/
+
+# Node modules (if you ever add npm)
+node_modules/
+
+# PHP error files
+php_errorlog
