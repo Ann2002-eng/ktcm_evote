@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel | KTCM E-Vote</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#1a3aff;--blue-2:#0e25c7;--blue-dark:#070f4a;--pink:#e91e8c;--pink-2:#c2177a;--pink-light:#f472b6;--pink-pale:rgba(233,30,140,0.12);--white:#fff;--card:rgba(14,26,80,0.85);--text:#fff;--text-muted:rgba(255,255,255,0.5);--text-dim:rgba(255,255,255,0.25);--border:rgba(233,30,140,0.22);--border-soft:rgba(255,255,255,0.07);--green:#10b981;--green-dim:rgba(16,185,129,0.12);--red:#f43f5e;--red-dim:rgba(244,63,94,0.12);--gold:#f0b429;--radius:14px;--shadow:0 20px 60px rgba(7,15,74,0.7)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--blue-dark);color:var(--text);min-height:100vh;overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+.bg-o{position:absolute;border-radius:50%;filter:blur(90px);opacity:.18;animation:ob 14s ease-in-out infinite alternate}
+.bg-o1{width:600px;height:600px;background:var(--blue);top:-200px;left:-150px}
+.bg-o2{width:400px;height:400px;background:var(--pink);bottom:-100px;right:-100px;animation-delay:-6s}
+@keyframes ob{from{transform:translate(0,0)}to{transform:translate(20px,-30px)}}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(233,30,140,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(26,58,255,.04) 1px,transparent 1px);background-size:48px 48px}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:68px;background:rgba(7,15,74,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border-soft)}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--pink),var(--blue),var(--pink),transparent);opacity:.6}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-logo{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.2);box-shadow:0 4px 12px rgba(233,30,140,.4)}
+.brand-texts .brand-name{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:white}
+.brand-texts .brand-name span{color:var(--pink-light)}
+.brand-texts .brand-sub{font-size:.6rem;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;font-family:'DM Mono',monospace}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.admin-pill{background:var(--pink-pale);border:1px solid var(--border);padding:5px 14px;border-radius:100px;font-size:.75rem;font-weight:600;color:var(--pink-light);display:none}
+.admin-pill.show{display:block}
+.stripe{height:3px;background:linear-gradient(90deg,var(--blue-dark),var(--blue),var(--pink),var(--blue),var(--blue-dark));position:relative;z-index:1}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 71px);position:relative;z-index:1}
+.sidebar{width:220px;flex-shrink:0;background:rgba(7,15,74,.7);border-right:1px solid var(--border-soft);padding:20px 12px;display:none}
+.sidebar.show{display:block}
+.sidebar-section{font-size:.6rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-dim);font-family:'DM Mono',monospace;padding:0 10px;margin:16px 0 8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:.83rem;font-weight:500;color:var(--text-muted);transition:all .2s;border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif}
+.nav-item:hover{background:rgba(255,255,255,.05);color:white}
+.nav-item.active{background:linear-gradient(135deg,rgba(26,58,255,.3),rgba(233,30,140,.2));color:white;border:1px solid var(--border)}
+.nav-icon{font-size:1rem;width:20px;text-align:center}
+.content{flex:1;padding:28px 24px;overflow-x:hidden}
+.page{display:none}.page.active{display:block;animation:pageIn .4s cubic-bezier(.16,1,.3,1)}
+@keyframes pageIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* LOGIN */
+.login-center{display:flex;align-items:center;justify-content:center;min-height:80vh;padding:20px}
+.login-card{background:var(--card);border:1px solid var(--border-soft);border-radius:20px;padding:40px;max-width:400px;width:100%;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--pink))}
+.login-logo{width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.2);margin:0 auto 16px;display:block}
+.login-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;text-align:center;margin-bottom:4px}
+.login-sub{text-align:center;color:var(--text-muted);font-size:.8rem;margin-bottom:28px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border-soft);border-radius:var(--radius);padding:24px;margin-bottom:20px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--pink),var(--blue),transparent)}
+.card-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:4px}
+.card-sub{font-size:.75rem;color:var(--text-muted);margin-bottom:20px}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:24px}
+.stat{background:rgba(10,20,100,.6);border:1px solid var(--border-soft);border-radius:var(--radius);padding:18px;text-align:center;transition:transform .2s}
+.stat:hover{transform:translateY(-3px)}
+.stat-num{font-family:'DM Mono',monospace;font-size:2rem;font-weight:500;background:linear-gradient(135deg,white,var(--pink-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-label{font-size:.62rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px}
+
+/* FORMS */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.68rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px;font-family:'DM Mono',monospace}
+.field input,.field select,.field textarea{width:100%;padding:11px 14px;background:rgba(255,255,255,.05);border:1px solid var(--border-soft);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:all .2s}
+.field input::placeholder,.field textarea::placeholder{color:var(--text-dim)}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--pink);background:rgba(233,30,140,.06);box-shadow:0 0 0 3px rgba(233,30,140,.1)}
+.field select option{background:#070f4a;color:white}
+.field textarea{resize:vertical;min-height:80px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.83rem;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:linear-gradient(135deg,var(--blue),var(--pink));color:white;box-shadow:0 4px 16px rgba(233,30,140,.25)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(233,30,140,.35)}
+.btn-green{background:var(--green-dim);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.btn-green:hover{background:rgba(16,185,129,.2)}
+.btn-red{background:var(--red-dim);color:#fca5a5;border:1px solid rgba(244,63,94,.3)}
+.btn-red:hover{background:rgba(244,63,94,.2)}
+.btn-gold{background:rgba(240,180,41,.15);color:var(--gold);border:1px solid rgba(240,180,41,.3)}
+.btn-gold:hover{background:rgba(240,180,41,.25)}
+.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border-soft)}
+.btn-ghost:hover{border-color:var(--pink);color:var(--pink-light)}
+.btn-sm{padding:7px 14px;font-size:.75rem}
+.btn-full{width:100%;justify-content:center;padding:14px}
+
+/* ALERTS */
+.alert{padding:11px 15px;border-radius:10px;font-size:.82rem;margin-bottom:14px;display:none;font-weight:500}
+.alert-error{background:var(--red-dim);color:#fca5a5;border:1px solid rgba(244,63,94,.25)}
+.alert-success{background:var(--green-dim);color:#6ee7b7;border:1px solid rgba(16,185,129,.25)}
+.alert.show{display:block}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border-soft)}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{padding:12px 14px;text-align:left;font-size:.65rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);background:rgba(10,20,100,.5);font-family:'DM Mono',monospace;border-bottom:1px solid var(--border-soft);white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:.68rem;font-weight:700;letter-spacing:.5px}
+.badge-green{background:var(--green-dim);color:#6ee7b7;border:1px solid rgba(16,185,129,.25)}
+.badge-pink{background:var(--pink-pale);color:var(--pink-light);border:1px solid var(--border)}
+.badge-gold{background:rgba(240,180,41,.12);color:var(--gold);border:1px solid rgba(240,180,41,.25)}
+.badge-gray{background:rgba(255,255,255,.05);color:var(--text-muted);border:1px solid var(--border-soft)}
+
+/* STATUS CONTROLS */
+.status-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px}
+.current-status{font-size:.78rem;color:var(--text-muted)}
+
+/* RESULT BARS */
+.res-bar-wrap{display:flex;align-items:center;gap:10px}
+.res-track{flex:1;background:rgba(255,255,255,.06);border-radius:100px;height:7px;overflow:hidden;min-width:80px}
+.res-bar{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--blue),var(--pink));transition:width 1.2s cubic-bezier(.16,1,.3,1)}
+.res-bar.top{background:linear-gradient(90deg,var(--gold),#f97316);box-shadow:0 0 8px rgba(240,180,41,.4)}
+.res-pct{font-family:'DM Mono',monospace;font-size:.78rem;color:var(--pink-light);min-width:40px;text-align:right}
+
+/* WINNER CARD */
+.winner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-top:20px}
+.winner-card{background:linear-gradient(135deg,rgba(240,180,41,.1),rgba(233,30,140,.08));border:1px solid rgba(240,180,41,.3);border-radius:var(--radius);padding:20px;text-align:center;position:relative;overflow:hidden}
+.winner-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--pink))}
+.winner-pos{font-size:.65rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);font-family:'DM Mono',monospace;margin-bottom:6px}
+.winner-name{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--gold);margin-bottom:4px}
+.winner-class{font-size:.72rem;color:var(--text-muted)}
+.winner-votes{font-size:.78rem;color:#6ee7b7;margin-top:8px;font-family:'DM Mono',monospace}
+
+/* AUDIT LOG */
+.log-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-soft)}
+.log-item:last-child{border-bottom:none}
+.log-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;background:rgba(255,255,255,.05)}
+.log-action{font-size:.78rem;font-weight:600;font-family:'DM Mono',monospace;color:var(--pink-light)}
+.log-desc{font-size:.78rem;color:var(--text-muted);margin-top:2px}
+.log-meta{font-size:.68rem;color:var(--text-dim);margin-top:3px;font-family:'DM Mono',monospace}
+
+/* TURNOUT BAR */
+.turnout-track{background:rgba(255,255,255,.06);border-radius:100px;height:10px;overflow:hidden;margin:10px 0}
+.turnout-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--blue),var(--pink));transition:width 1.5s ease;box-shadow:0 0 10px rgba(233,30,140,.4)}
+
+/* PHOTO PREVIEW */
+.photo-preview{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--border);margin-right:10px;vertical-align:middle}
+.photo-placeholder{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--pink));display:inline-flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:white;margin-right:10px;vertical-align:middle}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;z-index:500;background:rgba(7,15,74,.92);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:rgba(10,20,100,.97);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;animation:modalIn .35s cubic-bezier(.16,1.4,.3,1);position:relative}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--pink))}
+@keyframes modalIn{from{opacity:0;transform:scale(.88) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:20px}
+.modal-close{position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid var(--border-soft);color:var(--text-muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:var(--red-dim);color:#fca5a5}
+
+/* SPIN */
+.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.25);border-top-color:white;border-radius:50%;animation:rot .6s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* SECTION TABS */
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:22px;background:rgba(255,255,255,.04);padding:5px;border-radius:12px;border:1px solid var(--border-soft)}
+.tab{flex:1;min-width:80px;padding:9px 12px;border-radius:9px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border:none;color:var(--text-muted);background:none;transition:all .2s;text-align:center}
+.tab.active{background:linear-gradient(135deg,var(--blue),var(--pink));color:white;box-shadow:0 4px 12px rgba(233,30,140,.3)}
+
+/* SEARCH */
+.search-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.search-input{flex:1;min-width:200px;padding:10px 14px;background:rgba(255,255,255,.05);border:1px solid var(--border-soft);border-radius:10px;color:white;font-family:'DM Sans',sans-serif;font-size:.85rem;outline:none}
+.search-input:focus{border-color:var(--pink)}
+.search-input::placeholder{color:var(--text-dim)}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border-soft);margin:20px 0}
+
+/* RESPONSIVE */
+@media(max-width:768px){.sidebar{position:fixed;left:0;top:68px;bottom:0;z-index:100;transform:translateX(-100%);transition:transform .3s}.sidebar.open{transform:translateX(0)}.form-row{grid-template-columns:1fr}.content{padding:16px}}
+</style>
+</head>
+<body>
+<div class="bg"><div class="bg-o bg-o1"></div><div class="bg-o bg-o2"></div><div class="bg-grid"></div></div>
+
+<header class="topbar">
+  <div class="brand">
+    <img src="data:image/png;base64,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" class="brand-logo" alt="KTCM Logo">
+    <div class="brand-texts">
+      <div class="brand-name">Kiharu <span>Technical</span></div>
+      <div class="brand-sub">Admin Panel · E-Vote System</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="admin-pill" id="admin-pill">⚙️ ADMIN</span>
+    <button class="btn btn-ghost btn-sm" id="btn-logout" style="display:none" onclick="adminLogout()">Sign Out</button>
+    <a href="index.html" class="btn btn-ghost btn-sm">← Voting Portal</a>
+  </div>
+</header>
+<div class="stripe"></div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-section">Main</div>
+    <button class="nav-item active" onclick="switchTab('tab-overview',this)"><span class="nav-icon">📊</span>Overview</button>
+    <button class="nav-item" onclick="switchTab('tab-results',this)"><span class="nav-icon">🏆</span>Results</button>
+    <button class="nav-item" onclick="switchTab('tab-winners',this)"><span class="nav-icon">👑</span>Winners</button>
+    <div class="sidebar-section">Management</div>
+    <button class="nav-item" onclick="switchTab('tab-students',this)"><span class="nav-icon">👥</span>Students</button>
+    <button class="nav-item" onclick="switchTab('tab-candidates',this)"><span class="nav-icon">🧑‍💼</span>Candidates</button>
+    <button class="nav-item" onclick="switchTab('tab-positions',this)"><span class="nav-icon">📋</span>Positions</button>
+    <div class="sidebar-section">Settings</div>
+    <button class="nav-item" onclick="switchTab('tab-election',this)"><span class="nav-icon">⚙️</span>Election Settings</button>
+    <button class="nav-item" onclick="switchTab('tab-audit',this)"><span class="nav-icon">📝</span>Audit Log</button>
+    <button class="nav-item" onclick="switchTab('tab-security',this)"><span class="nav-icon">🔐</span>Security</button>
+  </nav>
+
+  <!-- CONTENT -->
+  <div class="content" id="content">
+
+    <!-- LOGIN PAGE -->
+    <div id="pg-login" class="page active">
+      <div class="login-center">
+        <div class="login-card">
+          <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCABvAHADASIAAhEBAxEB/8QAHQAAAgICAwEAAAAAAAAAAAAABwgEBgUJAAEDAv/EAEYQAAEDAwEEBgYHBAgHAQAAAAECAwQABREGBxIhMQgTIkFRYRQycXWBsRU2N1KRobMjJILBFhcnQ3KSoqMzNEJTYmOD0f/EABwBAAICAwEBAAAAAAAAAAAAAAAGBQcBAwQIAv/EADcRAAEDAwIDBAgEBwEAAAAAAAEAAgMEBREGIRIxcQcTQVEUImGBkaGxwRUyQtEWNDVEYmNy4f/aAAwDAQACEQMRAD8Aq3S5OdpVs9wxPkaDtGLpcD+0m2e4YnyNB2vTmjv6LT/8hC5XK4ONF7YfsJ1DtEDd1nKXZ9PE/wDNKT+0kDwaSeY/8jw8M1J3S70lrhM1S/A+Z6IQkjsvSZCI0Zlx99w4Q22gqUo+QHGihpTo/wC1HUTKH27CLawsAhy4uhk/5eKvxAp0dnOzTRugYSWNPWdlp/GHJbo6x9zzUs8fgMCrDcb5Z7elRm3KKxuEBW84Mpzyz4VUd07TaqVxbQxho8zufghKZbuiNqdxtKp+rbUwrvQ1HWvHxJFSZXRDvIbzG1pBUvwchqAP4KplZOutOR1MJcmqzIAUz+zI30laUBQzzGVDj4ceQr6la1sMaW9HfkOILLqmlrLZ3N5KQpWD4JCkknzpdOuL8XZ70/AfsspN9SdGPadam1OwmLdeEJ7o0jdWR/hWB86E2obFe9PTTCv1pmWyQDjcktFGfYTwPwrZhC1HZJjSXGbkxuqbS4N87nZUsoSeOOBUkgeNfOo7DYtTW1dvvlsh3OI4OLb7YWPaPA+Yqat/aZcIHYqmB7fZsVhawK5TO7aejC9BadvOzxbkhpIKnLU8vK0jn+yWef8AhPwNLK+07HfcjvtLaeaUUONrThSFDgQQeRq2bJqKivMfHTu38QeYQvisjpX61Wb3gx+omsdWR0r9arN7wY/UTUlcP5WTofohFHpc/aRa/cMT5Gg6PCjF0uftJtfuGJ8jVR2K6EkbQtoEKwJ3kwh+2nuj+7YTz+J9Ue2lnT1bHQ6chqJThrW5QiV0XdiadZPt6t1UwRp9lf7rGPD05aTzP/rB/H2U30q7Wy2ON2eIGDLDP7vDbIQAkcEjwSM4HlkVVLvqFiyuwdF6Qty1OpaEdBYSNyKkDAIB4KII9nBQznhQk2gayt2hZcqDbpLV31c86pcmYUksQFKHa3Ekntnwzw9gAqitR3yW4zOq6p2G/pb5BSFttlRcp209M3Lj8vaUVIUrV+qbiWJD0O3wkYW7FS7uvJ4KSpCwDvcDhQPAEAePCfZtmenYbSBOS7c3kk5dfXgne5jhzGeODnjSXx75eYl0XdY93msXF1RW5JS8Q4snmSe+rP8A1tbRfRfRhquUE4xndRvY9uM0ofxDHywR0T9N2XVwI7uVp65CavXVy2f6Lswl32Nb0JRjqWOrC3FqHIISeP8AKq3oDahs91ofR5kCLbLgpYxGlpT28cElKuR4Y86Um6TZ1zmKm3GbImSFc3XnCo/nUYeskjmDkHwPjXA6/wAgfsNkwU/ZXAKUiaU955jkPcnum6B0zLbIbjOR0KKFbrLpCDuHKMpOQcHkOVYpNiuOkno8prUqU2hhKwGH3EtF91WNxKlq4KJI8RzNBPoyXbWFx1qzbkX2cuzRGlPTGnldYnd5JSCr1cnw8KFHST1/K1xtIuCWZzzlkgOmNBZCyG+xwU5u8iSrPHwp+0nbJtSS93EeFoGSSqrvtmfZqs0sjg4jyTl6c14sx1M6rgKtEloJ61xRw0CpRSDx4gEpJHMYxx40POkvsUia0tz2q9LR0tahZb33G2wAmegDl/jxyPfyoBbONtU+0W9vTmtYy9Q6dBAQVK/e4g7lNrPrY7kq+FNHp+93K02qBqK2SnbxpW5BTzanklDrW+oFJVniAAN3AGCcY51LVVuuGmK1srPVIOx8HDy/cFQyQRaVoWptxCm1pUUqQoYKSDggjuINZDSv1qs3vBj9RNHHpg6CjW+6sa/sTSUW+5rDdxZSMdRKIyFED1d4cx4jzoHaV+tVn94MfqJq66C8R3e0OqGc+E5HkcbrCKPS5+0m1+4YnyNG/oS6QatezmTqaQxmTfHyEKKcER0EpSPYTvH8KCPS4Qpe0m1IQMqVYoaU+0ggU62z60t2LQ1ktDSNxMSC03jGOISM/nmqsv8AcHRaao6Vp/OMnoP/AFC89JaPs+mQ+bch5TjzilFx5wuKSkq3txJPJI8PLjml+6W2hW7dOZ1pbWd1EpXVTkpHDfx2V/HkfhTRVSNutubumyfUMd1IITEU6MjkUdoH8qq+sj7+JwcpzTtzkt1wjmYfHB6FLiqx2hm325Ma1W7rHLey8svMdYpS1DtZJUKjTbXFTaJ7iNO26S802koSlrquZOTkKPIcfhWY0+zOuNktcxAZUhVvabBW7ukYz3YPlXtPiSIFuuTshbRSuPuoQ2vexwUc8h41hlJD6PktGcLXJfbh+LcImdjj8z5oJqwMDeHEZB8a6yEjeyMVnrzqePpOz6djI0jYLk5MtxkPPzELU4V9YpOOBAxgCsM/tMbeGFaC0oMct1t0fJVLzbNJIA4Ebq4qjtMpKWR0LonEt28EaIcr+q7o1z78odTfdUK6iIRwWlKgQk8fup3lfEUrOMcCSfM0Y0bQpm1BLlm1RZbUWLVaZT8BTIWksKQgY3RnHcOY7qDaSSkEnJIFelOyqnp4aB7WD1gdz9FSVyr33CrkqX83ElX3YLoc7QNpdusjqCYDR9Knq7upQRlP8Rwn4mtibMSOzEREZaS2whAQhtIwEpAwABSxdAW1tC1anvRSkurkNRUq7wlKd4j8SPwppKS9fXN9XdnxE+rHsPuVxKjax2c2S7bPNQ6XZjkIugcfyo7xS/gFCh7ClOK172Bh6NrS2RpKCh5m6NNuJPcpLoBH4itoBrX9tnsybF0lJkNtO609eY8pAxjAcUlR/PNSXZ/cHN9JpCdnNJHUIWc6TDSX9tOmGVeq5bbck/5hTyoASgJAwAMUiXSsf9G2sWGTkjqbRBcyO7dOaea2SEy7dGloOUvtIcSfEKSD/OofUbT+G293hwH7IUih/wBIK8NWfZTe1rWErkMejtD7yl9nH5miBS7dNC5LRCsFpSew66uQseO6MD8yaRquTu4XOU1p2i9NucMJ8T9N0M9Nap9E09AiZbBbYCe0M4517T787OiyWi8yUqZWcJTxzunzqqW+XATbIyH0ftA3g9nPfXqiRH3ZCY+ASws4Ccd1b/7XfyUY9mL2R/s+6pm0xxSmtNtkE9XagP8AdXVPGT3GipAct90dgwJumYlzfSjqmnFdYpYTzxhJ5ZJqR9AQ88NmjhAPE/R0nh/qrTQubPCDGc4UnqqjqaC4vEzccRJHRVDZYdy+XQjIzZZg/wBuqmgdhJHLAokXJ9yxKkrtmgFROuiuR1SfRZCCkLGDwVnuqgLiymGA47EkNt4wFraUlP4kVfnZ3Tuo6V5lI9YjG6X2O3TPdArUMdpepNLurAfdU3NYRnioAbi8ezs02Fa1dj2oJWmtqOnbvGcUjcnNtugHG82s7igfLBrZSCDypE7Qbb6JdTKOUgz7+RW5d0kvSrZS30nLY4P71MAq+C8U7VIz0lZ6Z3ShSlBymLIgRz7QUk/OuXRLHOr3keDHIUHpdgK2j2wHkbBE+RpqujNqdOqdjVilKWFyYrPocjjyW32fzAB+NKr0uftItfuGJ8jVi6FGvE2LWEnR894IhXnC4xUeCZCRy/iTw9oFNV0tLqzSdPOwZdGM+7xQnSJpbumjCeJ09ckpUWk9ayogcATgimEvKXXLPMSwFqeLC+rCFlCirBxgjiOPfQv1LbmtouhpumZcofSDCW3YT8hstKU6EBWd0nJGTgnvyap6ogNRTuaFOacr2W+5RVD+QO/Q7JU4dzhMRUMu20vKSMFZdI3vh3V29dIHVLEW2dS6tJQVlwnAIqJeLbOs90ftlzjLiy2Fbrjaxy8x4g9x76ieJHHFKzrnWNHdk+xXvHoywyv9NYzJJ4s5280ZOjz9DWuxao1PdYrgRaowW5NWobu5/wBpA+8cc/MVKj9InQymgr6JvzJPEoOD/Oqltolt6N2P6e2exSW7heMXW74PHdPqIPxH+mgOoHnnNX72f6Ihq7WJ63PrHbG2yofVVYy4XWWVpPDnA6DZMhP6RWnBvpjaZuzySebkhCR+HGqfr/bHatTaeVbIumpDC1PtOEyn0uNEIUCUlIHfjFB6uu/hnPkKsaHRtqpsPwdv8il8RBpyFdbQhvWu1eztWGwRLMmZPjoTChqUUICVAqUM8uAJrZAgADHhwpbeiRshk6cQrXeqI3o9wfaKYEZwdpho8S4sHkojkO4e2jtZr61ddQTY0WUy5HipCN1KclS88VBWcEDljxqoNbXOCtrGxU28cQ4QefXcrbhZmbJahxHpUhQQyyguOKPJKQMk1rbul8VqXbCq/lZUJ99Q8gn7hdG7/pxTcdMXXqNMbOF6fhvhN0vuWEgHtIY/vFfEdke00lelsf0qs4AwPpBjh/8ARNM2gLS5lFUVzx+YFo9w3Qil0uh/aRa/cMT5GhBGeejSGpMZ1bL7Sw424g4UhQOQR5gii/0uvtHtfuGJ8jQcp/0lG19jga4ZBagp/ujltXibR9KoYluNtahgICJzGcFzweSO9Ku/wNXLVelIN7PpCCqLPQn9nJb4E+Sscx8q1y6S1FeNK6gi32xTXIk6MrKFo5Ed6VDvSe8U8ewzbjp3aJEagS1tWrUSU4chrXhLp+80T6w8uY86qTVukJ7TMaimGYjvt+nr7FkKPq/SNpuWklI1va+sdirDUaYhaWn9wHiQoD1EjPPuHKqrp7o+w/6SW27RdSsXGzMvpedZWgFxQByE7yTjnzPlTETI8aWwpiUy282rmhaQoH8aqszRMdlGbBLdtjm+FqCDlK8KBCSeYGBge2q/kggmdxvHrKXotQXKiidDDKQw7YSOdIc6ge2r3+ffbfMioXLU1FU8ypCCwjso3SRgjA/M0O+AGc8K2QXiDqV/T7ke5Wu1Xpwv4THdAUgshP8A1bw7RzVUOzTT9nvj9wsGzCyrkkBTTrw3kJcwMEJJwBnOcAYwOeatu09osdFSNp3w7tGBg7bdVDkA7pQtn2yrXOunW/oKxv8Aoqj2pskdUwkeO8efsANMts52N6L2WqjXrVEtq/X4KSGkbg6thRPEtoJ4kce0rj4UW7tZdRXJMSO1c2rbEQ2kuJYSUq3t3Ck9k+rnjzqdZNJWi2OdcG1yXyreK3lb2DgDIB4A4A4+VLV71tX3RpYXcDD+lv3KyFg5tp1He5a4siXIZtskOda606ktqTvAtlA9ZJ3cg8efjWT1Fc9ObOtHybvOcTGgQ295RJBcdVjASM+so91c2ja80zoCxquuop6I6MEMsJ4uvq+6hPMnz5CkW217Vr5tNvIfmfudpjqPoVvQrKUD76/vL8+7urm01pqqvkwAHDEOZ+w9qFhdqetLjr/WkzUlx7HWncjsZyGGh6qB/PxNYfS31qs/vBj9RNY6sjpb61Wb3gx+omvQL6OKitzoIhhrWkD4LCKXS6+0e1+4YnyNByjH0uvtItfuGJ8jQltsCbcXlMQWC8tKd9QCkpwPHiRUXpSZkVjp3POBwhBUau21radQ604ttxB3kLQopUk+II5GpbVrnPT1W9mOVykZ3m99Ixjnxzj869TY7t6aYQhkyQgLLfWIzjxznH51OSVtIQWvcOXyQjFs06S+stMstQL+0nUcBGEhTq9yShPk5yV/EPjR+0l0kdmF6SlEy5v2SQQMonMlKR7FjINI8zZrk9NehNxFKkM/8RAWgFPxJx+Bryat01+eYDMcuSUkgt7yQRjnxJx+dI9z0ZYq5xfG7uzjJ4Tt1xyRlbKLbrjRlyQHIOqbK+CMjdmt/wD7UqTqvS8ZHWSNR2hpPPKpjY/nWsWZCdhS1sSWQ0+j1k5BI+I4VNXYbqYHp6oJVF3Os6wuIPZ8cb2fypak7NadmHelgNPLI5/NAKfrUu3XZZYkKL+qostxPDqYQL6yf4RigntD6V8yQh2JoeyeiJIKfTZ+FLHmlsHA+JPspZ4EKRMkCNDZDjpGQgEJyPjgVNlafvMWOuRIgKbaQMqV1qDj4BVTtFoOyUMgNTJxnyJwPgEZXzqO+XjUd1cul9uMm4TXPWdeWVEeQHJI8hWOqXbbbPuSliDHL5QAVYWlOM8vWIr6h2u4SpDseNGLjrXFxO+kbv4nH4U+xS0lM0xsIaG+A8EKFWR0t9a7N7wY/UTUKSy5HfWw6gocbUUqSSDgj2cKm6V+tdm94MfqJr7rnB9HI4ci0/RC/9k=" class="login-logo" alt="KTCM Logo">
+          <h2 class="login-title">Admin Login</h2>
+          <p class="login-sub">Electoral Commission Access · KTCM E-Vote</p>
+          <div class="alert alert-error" id="login-err"></div>
+          <div class="field"><label>Username</label><input type="text" id="au" placeholder="admin"></div>
+          <div class="field"><label>Password</label><input type="password" id="ap" placeholder="Enter password"></div>
+          <button class="btn btn-primary btn-full" onclick="adminLogin()"><span id="login-lbl">Access Admin Panel →</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="pg-dashboard" class="page">
+
+      <!-- OVERVIEW -->
+      <div id="tab-overview" class="tab-pane active">
+        <div class="card">
+          <div class="card-title">📊 Election Overview</div>
+          <div class="card-sub" id="election-name-display">Loading...</div>
+          <div class="stats-grid" id="stats-grid"></div>
+          <div style="margin-bottom:8px;font-size:.75rem;color:var(--text-muted)">Voter Turnout</div>
+          <div class="turnout-track"><div class="turnout-fill" id="ov-turnout" style="width:0%"></div></div>
+          <div style="font-size:.78rem;color:var(--pink-light);font-family:'DM Mono',monospace;margin-top:6px" id="ov-turnout-txt"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚡ Election Control</div>
+          <div class="card-sub">Change the election status below</div>
+          <div class="status-row">
+            <span class="current-status">Status: <span id="current-status-badge"></span></span>
+            <button class="btn btn-green" onclick="setStatus('active')">▶ Activate</button>
+            <button class="btn btn-ghost" onclick="setStatus('pending')">⏸ Pause</button>
+            <button class="btn btn-red" onclick="setStatus('closed')">⏹ Close Election</button>
+          </div>
+          <div class="alert alert-success" id="status-msg"></div>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div id="tab-results" class="tab-pane" style="display:none">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+            <div><div class="card-title">📈 Live Results</div><div style="font-size:.75rem;color:var(--text-muted)">Updates every 15s</div></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-gold" onclick="exportCSV()">📥 Export CSV</button>
+              <button class="btn btn-primary" onclick="printResults()">🖨️ Print Results</button>
+            </div>
+          </div>
+          <div id="results-body"></div>
+        </div>
+      </div>
+
+      <!-- WINNERS -->
+      <div id="tab-winners" class="tab-pane" style="display:none">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+            <div><div class="card-title">👑 Election Winners</div><div style="font-size:.75rem;color:var(--text-muted)">Official results announcement</div></div>
+            <button class="btn btn-gold" onclick="announceWinners()">🏆 Announce Winners</button>
+          </div>
+          <div id="winners-body"><p style="color:var(--text-muted);font-size:.85rem;text-align:center;padding:30px">Click "Announce Winners" to declare official results. This will also close the election.</p></div>
+        </div>
+      </div>
+
+      <!-- STUDENTS -->
+      <div id="tab-students" class="tab-pane" style="display:none">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+            <div><div class="card-title">👥 Registered Students</div><div class="card-sub" style="margin-bottom:0" id="students-sub">Loading...</div></div>
+            <button class="btn btn-primary" onclick="openModal('modal-add-student')">+ Add Student</button>
+            <button class="btn btn-gold" onclick="openModal('modal-bulk-import')">📥 Bulk Import CSV</button>
+          </div>
+          <div class="search-row">
+            <input class="search-input" id="student-search" placeholder="🔍 Search by name or ID..." oninput="loadStudents()">
+            <button class="btn btn-ghost" onclick="exportStudentsCSV()">📥 Export</button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>#</th><th>Student ID</th><th>Name</th><th>Class</th><th>Status</th><th>Voted At</th><th>Receipt</th><th>Actions</th></tr></thead>
+            <tbody id="students-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- CANDIDATES -->
+      <div id="tab-candidates" class="tab-pane" style="display:none">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+            <div><div class="card-title">🧑‍💼 Candidates</div><div class="card-sub" style="margin-bottom:0">Manage election candidates</div></div>
+            <button class="btn btn-primary" onclick="openModal('modal-add-candidate')">+ Add Candidate</button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Photo</th><th>Name</th><th>Position</th><th>Class</th><th>Votes</th><th>Actions</th></tr></thead>
+            <tbody id="candidates-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- POSITIONS -->
+      <div id="tab-positions" class="tab-pane" style="display:none">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+            <div><div class="card-title">📋 Election Positions</div><div class="card-sub" style="margin-bottom:0">Manage positions being contested</div></div>
+            <button class="btn btn-primary" onclick="openModal('modal-add-position')">+ Add Position</button>
+          </div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Order</th><th>Title</th><th>Description</th><th>Candidates</th><th>Actions</th></tr></thead>
+            <tbody id="positions-tbody"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <!-- ELECTION SETTINGS -->
+      <div id="tab-election" class="tab-pane" style="display:none">
+        <div class="card">
+          <div class="card-title">⚙️ Election Settings</div>
+          <div class="card-sub">Update election details and schedule</div>
+          <div class="alert alert-success" id="election-save-msg"></div>
+          <div class="field"><label>Election Name</label><input type="text" id="es-name" placeholder="2026 Student Leadership Elections"></div>
+          <div class="field"><label>School Name</label><input type="text" id="es-school" placeholder="Kiharu Technical College Murang'a"></div>
+          <div class="form-row">
+            <div class="field"><label>Start Date & Time</label><input type="datetime-local" id="es-start"></div>
+            <div class="field"><label>End Date & Time</label><input type="datetime-local" id="es-end"></div>
+          </div>
+          <div class="field"><label>Status</label>
+            <select id="es-status">
+              <option value="pending">Pending</option>
+              <option value="active">Active</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="saveElectionSettings()">💾 Save Settings</button>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:#fca5a5">⚠️ Danger Zone</div>
+          <div class="card-sub">Irreversible actions — use with extreme caution</div>
+          <button class="btn btn-red" onclick="resetVotes()">🗑️ Reset All Votes</button>
+        </div>
+      </div>
+
+      <!-- AUDIT LOG -->
+      <div id="tab-audit" class="tab-pane" style="display:none">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <div><div class="card-title">📝 Audit Log</div><div class="card-sub" style="margin-bottom:0">Last 100 system activities</div></div>
+            <button class="btn btn-ghost" onclick="loadAuditLog()">🔄 Refresh</button>
+          </div>
+          <div id="audit-body"></div>
+        </div>
+      </div>
+
+      <!-- SECURITY -->
+      <div id="tab-security" class="tab-pane" style="display:none">
+        <div class="card" style="max-width:480px">
+          <div class="card-title">🔐 Change Admin Password</div>
+          <div class="card-sub">Update your admin login password</div>
+          <div class="alert alert-error" id="pwd-err"></div>
+          <div class="alert alert-success" id="pwd-ok"></div>
+          <div class="field"><label>Current Password</label><input type="password" id="pwd-old" placeholder="Current password"></div>
+          <div class="field"><label>New Password</label><input type="password" id="pwd-new" placeholder="Min 6 characters"></div>
+          <div class="field"><label>Confirm New Password</label><input type="password" id="pwd-confirm" placeholder="Repeat new password"></div>
+          <button class="btn btn-primary" onclick="changeAdminPassword()">🔐 Update Password</button>
+        </div>
+      </div>
+
+    </div><!-- /pg-dashboard -->
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<!-- ===== MODALS ===== -->
+
+
+<!-- BULK IMPORT STUDENTS -->
+<div class="modal-bg" id="modal-bulk-import">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-bulk-import')">✕</button>
+    <div class="modal-title">📥 Bulk Import Students (CSV)</div>
+    <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:16px;line-height:1.6">
+      Paste CSV data below or upload a CSV file.<br>
+      Format: <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px">StudentID, Full Name, Class, PIN</code><br>
+      PIN column is optional — defaults to <strong>1234</strong>.
+    </p>
+    <div class="field">
+      <label>Upload CSV File</label>
+      <input type="file" id="csv-file" accept=".csv,.txt" onchange="readCSVFile(this)">
+    </div>
+    <div class="field">
+      <label>Or Paste CSV Data</label>
+      <textarea id="csv-data" style="min-height:160px;font-family:'DM Mono',monospace;font-size:.78rem" placeholder="KTCM/006/2026, Alice Mwangi, ICT Diploma 1, 1234
+KTCM/007/2026, Brian Ouma, Business Diploma 2, 1234
+KTCM/008/2026, Carol Njeri, Nursing Diploma 1"></textarea>
+    </div>
+    <div class="alert alert-error" id="bulk-err"></div>
+    <div class="alert alert-success" id="bulk-ok"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-bulk-import')">Cancel</button>
+      <button class="btn btn-primary" onclick="bulkImport()">📥 Import Students</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD STUDENT -->
+<div class="modal-bg" id="modal-add-student">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-add-student')">✕</button>
+    <div class="modal-title">➕ Add New Student</div>
+    <div class="alert alert-error" id="add-student-err"></div>
+    <div class="form-row">
+      <div class="field"><label>Student ID</label><input type="text" id="ns-id" placeholder="KTCM/006/2026"></div>
+      <div class="field"><label>Default PIN</label><input type="text" id="ns-pin" placeholder="1234" value="1234"></div>
+    </div>
+    <div class="field"><label>Full Name</label><input type="text" id="ns-name" placeholder="Full name"></div>
+    <div class="field"><label>Class / Course</label><input type="text" id="ns-class" placeholder="ICT Diploma 2"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-student')">Cancel</button>
+      <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT STUDENT -->
+<div class="modal-bg" id="modal-edit-student">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-edit-student')">✕</button>
+    <div class="modal-title">✏️ Edit Student</div>
+    <input type="hidden" id="edit-student-id">
+    <div class="field"><label>Full Name</label><input type="text" id="edit-s-name"></div>
+    <div class="field"><label>Class / Course</label><input type="text" id="edit-s-class"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit-student')">Cancel</button>
+      <button class="btn btn-primary" onclick="editStudent()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET PIN -->
+<div class="modal-bg" id="modal-reset-pin">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-reset-pin')">✕</button>
+    <div class="modal-title">🔑 Reset Student PIN</div>
+    <input type="hidden" id="reset-pin-student-id">
+    <div class="field"><label>New PIN</label><input type="text" id="reset-pin-value" placeholder="e.g. 1234" value="1234"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-reset-pin')">Cancel</button>
+      <button class="btn btn-primary" onclick="resetStudentPin()">Reset PIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CANDIDATE -->
+<div class="modal-bg" id="modal-add-candidate">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-add-candidate')">✕</button>
+    <div class="modal-title">➕ Add Candidate</div>
+    <div class="alert alert-error" id="add-cand-err"></div>
+    <div class="field"><label>Position</label><select id="nc-pos"><option value="">Select position...</option></select></div>
+    <div class="form-row">
+      <div class="field"><label>Full Name</label><input type="text" id="nc-name" placeholder="Candidate name"></div>
+      <div class="field"><label>Class</label><input type="text" id="nc-class" placeholder="ICT Diploma 2"></div>
+    </div>
+    <div class="field"><label>Manifesto</label><textarea id="nc-manifesto" placeholder="Candidate's election manifesto..."></textarea></div>
+    <div class="field"><label>Photo (optional)</label><input type="file" id="nc-photo" accept="image/*" onchange="previewPhoto(this,'nc-photo-prev')"><div id="nc-photo-prev" style="margin-top:8px"></div></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-candidate')">Cancel</button>
+      <button class="btn btn-primary" onclick="addCandidate()">Add Candidate</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT CANDIDATE -->
+<div class="modal-bg" id="modal-edit-candidate">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-edit-candidate')">✕</button>
+    <div class="modal-title">✏️ Edit Candidate</div>
+    <input type="hidden" id="edit-cand-id">
+    <div class="field"><label>Position</label><select id="edit-cand-pos"></select></div>
+    <div class="form-row">
+      <div class="field"><label>Full Name</label><input type="text" id="edit-cand-name"></div>
+      <div class="field"><label>Class</label><input type="text" id="edit-cand-class"></div>
+    </div>
+    <div class="field"><label>Manifesto</label><textarea id="edit-cand-manifesto"></textarea></div>
+    <div class="field"><label>Update Photo (optional)</label><input type="file" id="edit-cand-photo" accept="image/*" onchange="previewPhoto(this,'edit-photo-prev')"><div id="edit-photo-prev" style="margin-top:8px"></div></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit-candidate')">Cancel</button>
+      <button class="btn btn-primary" onclick="editCandidate()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD POSITION -->
+<div class="modal-bg" id="modal-add-position">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-add-position')">✕</button>
+    <div class="modal-title">➕ Add Position</div>
+    <div class="field"><label>Position Title</label><input type="text" id="np-title" placeholder="e.g. School President"></div>
+    <div class="field"><label>Description</label><input type="text" id="np-desc" placeholder="Brief description of the role"></div>
+    <div class="field"><label>Display Order</label><input type="number" id="np-order" placeholder="1" value="1"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-position')">Cancel</button>
+      <button class="btn btn-primary" onclick="addPosition()">Add Position</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT RESULTS (hidden) -->
+<div id="print-area" style="display:none"></div>
+
+<script>
+const API = 'api.php';
+let allPositions = [];
+let resultsInterval = null;
+
+// ---- UTILS ----
+function $(id){return document.getElementById(id)}
+function showAlert(id,msg,type='error'){const el=$(id);el.textContent=msg;el.className='alert alert-'+type+' show';setTimeout(()=>{el.className='alert alert-'+type},4000)}
+function openModal(id){$(id).classList.add('open')}
+function closeModal(id){$(id).classList.remove('open')}
+function spin(id,msg=''){$(id).innerHTML='<span class="spin"></span>'+msg}
+
+// ---- NAV ----
+function switchTab(id, el){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.style.display='none');
+  $(id).style.display='block';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(id==='tab-results'){startResults()}else{stopResults()}
+  if(id==='tab-students')loadStudents();
+  if(id==='tab-candidates')loadCandidates();
+  if(id==='tab-positions')loadPositions();
+  if(id==='tab-audit')loadAuditLog();
+  if(id==='tab-winners')loadWinners();
+  if(id==='tab-election')loadElectionSettings();
+}
+
+// ---- ADMIN LOGIN ----
+function adminLogin(){
+  const u=$('au').value.trim(), p=$('ap').value;
+  if(!u||!p){showAlert('login-err','Enter username and password.');return}
+  spin('login-lbl','Logging in...');
+  const fd=new FormData();fd.append('action','admin_login');fd.append('username',u);fd.append('password',p);
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    $('login-lbl').textContent='Access Admin Panel →';
+    if(!d.success){showAlert('login-err',d.message);return}
+    $('admin-pill').textContent='⚙️ '+d.name.toUpperCase();
+    $('admin-pill').classList.add('show');
+    $('btn-logout').style.display='inline-flex';
+    $('pg-login').classList.remove('active');
+    $('pg-dashboard').classList.add('active');
+    $('sidebar').classList.add('show');
+    loadOverview();setInterval(loadOverview,15000);
+    loadPositionsForSelect();
+  }).catch(()=>{$('login-lbl').textContent='Access Admin Panel →';showAlert('login-err','Connection error.')});
+}
+
+function adminLogout(){
+  const fd=new FormData();fd.append('action','logout');
+  fetch(API,{method:'POST',body:fd}).then(()=>{location.reload()});
+}
+
+// ---- OVERVIEW ----
+function loadOverview(){
+  fetch(`${API}?action=admin_stats`).then(r=>r.json()).then(d=>{
+    if(!d.success)return;
+    const s=d.stats;
+    $('stats-grid').innerHTML=`
+      <div class="stat"><div class="stat-num">${s.total_students}</div><div class="stat-label">Registered</div></div>
+      <div class="stat"><div class="stat-num">${s.total_voted}</div><div class="stat-label">Voted</div></div>
+      <div class="stat"><div class="stat-num">${s.turnout}%</div><div class="stat-label">Turnout</div></div>
+      <div class="stat"><div class="stat-num">${s.total_candidates}</div><div class="stat-label">Candidates</div></div>
+      <div class="stat"><div class="stat-num">${s.total_positions}</div><div class="stat-label">Positions</div></div>
+    `;
+    $('ov-turnout').style.width=s.turnout+'%';
+    $('ov-turnout-txt').textContent=`${s.total_voted} of ${s.total_students} students have voted`;
+    if(d.election){
+      $('election-name-display').textContent=d.election.election_name+' · '+d.election.school_name;
+      const sm={active:'<span class="badge badge-green">ACTIVE</span>',pending:'<span class="badge badge-gold">PENDING</span>',closed:'<span class="badge badge-gray">CLOSED</span>'};
+      $('current-status-badge').innerHTML=sm[d.election.status]||d.election.status;
+    }
+  }).catch(()=>{});
+}
+
+function setStatus(s){
+  const fd=new FormData();fd.append('action','update_status');fd.append('status',s);
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.success)showAlert('status-msg',d.message,'success');
+    loadOverview();
+  });
+}
+
+// ---- RESULTS ----
+function startResults(){stopResults();fetchResults();resultsInterval=setInterval(fetchResults,15000)}
+function stopResults(){if(resultsInterval){clearInterval(resultsInterval);resultsInterval=null}}
+function fetchResults(){
+  fetch(`${API}?action=get_results`).then(r=>r.json()).then(d=>{
+    if(!d.success)return;
+    $('results-body').innerHTML=d.positions.map(pos=>`
+      <div style="margin-bottom:24px">
+        <div style="font-size:.68rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);font-family:'DM Mono',monospace;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border-soft)">${pos.title}</div>
+        ${pos.candidates.map(c=>`
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--pink));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;flex-shrink:0">${c.full_name.charAt(0)}</div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                <span style="font-size:.85rem;font-weight:600">${c.full_name}</span>
+                ${c.is_leading&&d.total_voted>0?'<span class="badge badge-gold">🏆 LEADING</span>':''}
+              </div>
+              <div class="res-bar-wrap">
+                <div class="res-track"><div class="res-bar ${c.is_leading&&d.total_voted>0?'top':''}" style="width:${c.percentage}%"></div></div>
+                <div class="res-pct">${c.vote_count} (${c.percentage}%)</div>
+              </div>
+            </div>
+          </div>`).join('')}
+      </div><hr style="border:none;border-top:1px solid var(--border-soft);margin-bottom:20px">
+    `).join('');
+  }).catch(()=>{});
+}
+
+function exportCSV(){
+  const fd=new FormData();fd.append('action','export_results');
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(!d.success)return;
+    const blob=new Blob([d.csv],{type:'text/csv'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=d.filename;a.click();
+  });
+}
+
+function printResults(){
+  fetch(`${API}?action=get_results`).then(r=>r.json()).then(d=>{
+    if(!d.success)return;
+    const w=window.open('','_blank');
+    w.document.write(`<html><head><title>KTCM Election Results</title><style>
+      body{font-family:Arial,sans-serif;padding:30px;color:#000}
+      h1{font-size:20px;text-align:center;margin-bottom:4px}
+      h2{font-size:13px;text-align:center;color:#555;margin-bottom:20px;font-weight:normal}
+      table{width:100%;border-collapse:collapse;margin-bottom:24px}
+      th{background:#1a3aff;color:white;padding:9px 12px;text-align:left;font-size:12px}
+      td{padding:8px 12px;border-bottom:1px solid #eee;font-size:13px}
+      .winner{background:#fff3cd;font-weight:bold}
+      .pos-title{font-size:14px;font-weight:bold;margin:16px 0 6px;color:#1a3aff;text-transform:uppercase;letter-spacing:1px}
+    </style></head><body>
+      <h1>Kiharu Technical College Murang'a</h1>
+      <h2>2026 Student Leadership Election Results · Printed: ${new Date().toLocaleString()}</h2>
+      <p style="text-align:center;font-size:12px;margin-bottom:20px">Total Voted: ${d.total_voted} / ${d.total_voters} (${d.turnout_percent}%)</p>
+      ${d.positions.map(pos=>`
+        <div class="pos-title">${pos.title}</div>
+        <table><thead><tr><th>Candidate</th><th>Class</th><th>Votes</th><th>%</th></tr></thead>
+        <tbody>${pos.candidates.map((c,i)=>`<tr class="${i===0&&d.total_voted>0?'winner':''}"><td>${c.full_name}${i===0&&d.total_voted>0?' 🏆':''}</td><td>${c.class}</td><td>${c.vote_count}</td><td>${c.percentage}%</td></tr>`).join('')}</tbody>
+        </table>`).join('')}
+    </body></html>`);
+    w.document.close();w.print();
+  });
+}
+
+// ---- WINNERS ----
+function loadWinners(){
+  fetch(`${API}?action=get_winners`).then(r=>r.json()).then(d=>{
+    if(!d.success){$('winners-body').innerHTML=`<p style="color:var(--text-muted);text-align:center;padding:30px">Winners not yet announced. Click "Announce Winners" when the election is closed.</p>`;return}
+    $('winners-body').innerHTML=`<div class="winner-grid">${d.winners.map(w=>`
+      <div class="winner-card">
+        <div class="winner-pos">${w.position}</div>
+        <div style="font-size:2rem;margin:8px 0">👑</div>
+        <div class="winner-name">${w.winner}</div>
+        <div class="winner-class">${w.class}</div>
+        <div class="winner-votes">🗳️ ${w.votes} votes</div>
+      </div>`).join('')}</div>`;
+  }).catch(()=>{});
+}
+
+function announceWinners(){
+  if(!confirm('Announce winners now? This will also CLOSE the election.'))return;
+  const fd=new FormData();fd.append('action','announce_winners');
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.success){alert('✅ Winners announced!');loadWinners();loadOverview();}
+    else alert('Error: '+d.message);
+  });
+}
+
+// ---- STUDENTS ----
+function loadStudents(){
+  const search=$('student-search').value;
+  const fd=new FormData();fd.append('action','get_students');fd.append('search',search);
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(!d.success)return;
+    $('students-sub').textContent=`${d.students.filter(s=>s.has_voted==='1'||s.has_voted===1).length} of ${d.students.length} have voted`;
+    $('students-tbody').innerHTML=d.students.map((s,i)=>`
+      <tr>
+        <td style="color:var(--text-muted);font-family:'DM Mono',monospace">${i+1}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:.78rem">${s.student_id}</td>
+        <td>${s.full_name}</td>
+        <td style="font-size:.78rem;color:var(--text-muted)">${s.class}</td>
+        <td>${s.has_voted=='1'?'<span class="badge badge-green">✓ Voted</span>':'<span class="badge badge-gray">Pending</span>'}</td>
+        <td style="font-size:.72rem;color:var(--text-muted);font-family:'DM Mono',monospace">${s.voted_at||'—'}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:.72rem;color:var(--pink-light)">${s.receipt_code||'—'}</td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-ghost btn-sm" onclick="openEditStudent(${s.id},'${esc(s.full_name)}','${esc(s.class)}')">✏️</button>
+            <button class="btn btn-gold btn-sm" onclick="openResetPin(${s.id})">🔑</button>
+            <button class="btn btn-red btn-sm" onclick="deleteStudent(${s.id},'${esc(s.full_name)}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  });
+}
+
+function addStudent(){
+  const fd=new FormData();
+  fd.append('action','add_student');
+  fd.append('student_id',$('ns-id').value.trim());
+  fd.append('full_name',$('ns-name').value.trim());
+  fd.append('class',$('ns-class').value.trim());
+  fd.append('pin',$('ns-pin').value.trim()||'1234');
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(!d.success){showAlert('add-student-err',d.message);return}
+    closeModal('modal-add-student');
+    $('ns-id').value='';$('ns-name').value='';$('ns-class').value='';
+    loadStudents();
+  });
+}
+
+function openEditStudent(id,name,cls){
+  $('edit-student-id').value=id;$('edit-s-name').value=name;$('edit-s-class').value=cls;
+  openModal('modal-edit-student');
+}
+
+function editStudent(){
+  const fd=new FormData();
+  fd.append('action','edit_student');fd.append('id',$('edit-student-id').value);
+  fd.append('full_name',$('edit-s-name').value.trim());fd.append('class',$('edit-s-class').value.trim());
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.success){closeModal('modal-edit-student');loadStudents();}
+  });
+}
+
+function openResetPin(id){$('reset-pin-student-id').value=id;$('reset-pin-value').value='1234';openModal('modal-reset-pin')}
+
+function resetStudentPin(){
+  const fd=new FormData();fd.append('action','reset_student_pin');fd.append('id',$('reset-pin-student-id').value);fd.append('pin',$('reset-pin-value').value);
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.success){closeModal('modal-reset-pin');alert('✅ PIN reset successfully');}});
+}
+
+function deleteStudent(id,name){
+  if(!confirm(`Delete student "${name}"? This cannot be undone.`))return;
+  const fd=new FormData();fd.append('action','delete_student');fd.append('id',id);
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.success)loadStudents()});
+}
+
+function exportStudentsCSV(){
+  const fd=new FormData();fd.append('action','get_students');fd.append('search','');
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(!d.success)return;
+    let csv='Student ID,Name,Class,Voted,Voted At,Receipt\n';
+    d.students.forEach(s=>{csv+=`"${s.student_id}","${s.full_name}","${s.class}","${s.has_voted=='1'?'Yes':'No'}","${s.voted_at||''}","${s.receipt_code||''}"\n`});
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='KTCM_Students.csv';a.click();
+  });
+}
+
+// ---- CANDIDATES ----
+function loadCandidates(){
+  fetch(`${API}?action=get_candidates_admin`).then(r=>r.json()).then(d=>{
+    if(!d.success)return;
+    $('candidates-tbody').innerHTML=d.candidates.map(c=>`
+      <tr>
+        <td><div class="photo-placeholder">${c.full_name.charAt(0)}</div></td>
+        <td style="font-weight:600">${c.full_name}</td>
+        <td><span class="badge badge-pink">${c.position_title}</span></td>
+        <td style="font-size:.78rem;color:var(--text-muted)">${c.class}</td>
+        <td style="font-family:'DM Mono',monospace;color:var(--pink-light)">${c.vote_count}</td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="openEditCandidate(${c.id},'${esc(c.full_name)}','${esc(c.class)}','${esc(c.manifesto||'')}',${c.position_id})">✏️ Edit</button>
+            <button class="btn btn-red btn-sm" onclick="deleteCandidate(${c.id},'${esc(c.full_name)}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`).join('');
+  });
+}
+
+function loadPositionsForSelect(){
+  fetch(`${API}?action=get_positions`).then(r=>r.json()).then(d=>{
+    if(!d.success)return;
+    allPositions=d.positions;
+    const opts=d.positions.map(p=>`<option value="${p.id}">${p.title}</option>`).join('');
+    $('nc-pos').innerHTML='<option value="">Select position...</option>'+opts;
+    $('edit-cand-pos').innerHTML=opts;
+  });
+}
+
+function previewPhoto(input,previewId){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{$(previewId).innerHTML=`<img src="${e.target.result}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid var(--border)">`};
+  reader.readAsDataURL(file);
+}
+
+function getPhotoB64(inputId){
+  return new Promise(resolve=>{
+    const file=$(inputId).files[0];
+    if(!file){resolve('');return}
+    const r=new FileReader();r.onload=e=>resolve(e.target.result);r.readAsDataURL(file);
+  });
+}
+
+async function addCandidate(){
+  const pos=$('nc-pos').value;
+  if(!pos){showAlert('add-cand-err','Please select a position.');return}
+  const photo=await getPhotoB64('nc-photo');
+  const fd=new FormData();
+  fd.append('action','add_candidate');fd.append('position_id',pos);
+  fd.append('full_name',$('nc-name').value.trim());fd.append('class',$('nc-class').value.trim());
+  fd.append('manifesto',$('nc-manifesto').value.trim());fd.append('photo',photo);
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(!d.success){showAlert('add-cand-err',d.message);return}
+    closeModal('modal-add-candidate');loadCandidates();
+  });
+}
+
+function openEditCandidate(id,name,cls,manifesto,posId){
+  $('edit-cand-id').value=id;$('edit-cand-name').value=name;
+  $('edit-cand-class').value=cls;$('edit-cand-manifesto').value=manifesto;
+  $('edit-cand-pos').value=posId;
+  openModal('modal-edit-candidate');
+}
+
+async function editCandidate(){
+  const photo=await getPhotoB64('edit-cand-photo');
+  const fd=new FormData();
+  fd.append('action','edit_candidate');fd.append('id',$('edit-cand-id').value);
+  fd.append('position_id',$('edit-cand-pos').value);fd.append('full_name',$('edit-cand-name').value.trim());
+  fd.append('class',$('edit-cand-class').value.trim());fd.append('manifesto',$('edit-cand-manifesto').value.trim());
+  fd.append('photo',photo);
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.success){closeModal('modal-edit-candidate');loadCandidates();}});
+}
+
+function deleteCandidate(id,name){
+  if(!confirm(`Delete candidate "${name}"?`))return;
+  const fd=new FormData();fd.append('action','delete_candidate');fd.append('id',id);
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.success)loadCandidates()});
+}
+
+// ---- POSITIONS ----
+function loadPositions(){
+  fetch(`${API}?action=get_positions`).then(r=>r.json()).then(d=>{
+    if(!d.success)return;
+    $('positions-tbody').innerHTML=d.positions.map(p=>`
+      <tr>
+        <td style="font-family:'DM Mono',monospace;color:var(--text-muted)">${p.display_order}</td>
+        <td style="font-weight:600">${p.title}</td>
+        <td style="font-size:.78rem;color:var(--text-muted)">${p.description||'—'}</td>
+        <td><span class="badge badge-pink" id="cand-count-${p.id}">—</span></td>
+        <td><button class="btn btn-red btn-sm" onclick="deletePosition(${p.id},'${esc(p.title)}')">🗑️ Delete</button></td>
+      </tr>`).join('');
+    // Load candidate counts
+    fetch(`${API}?action=get_candidates_admin`).then(r=>r.json()).then(cd=>{
+      if(!cd.success)return;
+      d.positions.forEach(p=>{
+        const count=cd.candidates.filter(c=>c.position_id==p.id).length;
+        const el=$(`cand-count-${p.id}`);if(el)el.textContent=count+' candidates';
+      });
+    });
+  });
+}
+
+function addPosition(){
+  const fd=new FormData();
+  fd.append('action','add_position');fd.append('title',$('np-title').value.trim());
+  fd.append('description',$('np-desc').value.trim());fd.append('display_order',$('np-order').value);
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.success){closeModal('modal-add-position');loadPositions();loadPositionsForSelect();}
+  });
+}
+
+function deletePosition(id,name){
+  if(!confirm(`Delete position "${name}"? All its candidates will also be deleted!`))return;
+  const fd=new FormData();fd.append('action','delete_position');fd.append('id',id);
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{if(d.success){loadPositions();loadPositionsForSelect();}});
+}
+
+// ---- ELECTION SETTINGS ----
+function loadElectionSettings(){
+  fetch(`${API}?action=get_election`).then(r=>r.json()).then(d=>{
+    if(!d.success||!d.election)return;
+    const e=d.election;
+    $('es-name').value=e.election_name;$('es-school').value=e.school_name;
+    $('es-status').value=e.status;
+    $('es-start').value=e.start_time?e.start_time.replace(' ','T').substring(0,16):'';
+    $('es-end').value=e.end_time?e.end_time.replace(' ','T').substring(0,16):'';
+  });
+}
+
+function saveElectionSettings(){
+  const fd=new FormData();
+  fd.append('action','update_election');fd.append('election_name',$('es-name').value);
+  fd.append('school_name',$('es-school').value);fd.append('start_time',$('es-start').value.replace('T',' '));
+  fd.append('end_time',$('es-end').value.replace('T',' '));fd.append('status',$('es-status').value);
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.success)showAlert('election-save-msg',d.message,'success');
+  });
+}
+
+// ---- AUDIT LOG ----
+function loadAuditLog(){
+  fetch(`${API}?action=get_audit_log`).then(r=>r.json()).then(d=>{
+    if(!d.success)return;
+    const icons={'VOTE_CAST':'🗳️','ADMIN_LOGIN':'🔐','STUDENT_ADDED':'👤','STUDENT_DELETED':'🗑️','CANDIDATE_ADDED':'🧑‍💼','STATUS_CHANGED':'⚡','WINNERS_ANNOUNCED':'👑','VOTES_RESET':'⚠️','SYSTEM_INIT':'🚀'};
+    $('audit-body').innerHTML=d.logs.map(l=>`
+      <div class="log-item">
+        <div class="log-icon">${icons[l.action]||'📝'}</div>
+        <div>
+          <div class="log-action">${l.action}</div>
+          <div class="log-desc">${l.description}</div>
+          <div class="log-meta">By: ${l.performed_by} · ${l.performed_at} · IP: ${l.ip_address||'—'}</div>
+        </div>
+      </div>`).join('')||'<p style="color:var(--text-muted);text-align:center;padding:20px">No log entries found.</p>';
+  });
+}
+
+// ---- SECURITY ----
+function changeAdminPassword(){
+  const old=$('pwd-old').value,nw=$('pwd-new').value,conf=$('pwd-confirm').value;
+  if(!old||!nw||!conf){showAlert('pwd-err','All fields required.');return}
+  if(nw!==conf){showAlert('pwd-err','New passwords do not match.');return}
+  const fd=new FormData();fd.append('action','admin_change_password');fd.append('old_password',old);fd.append('new_password',nw);
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(!d.success){showAlert('pwd-err',d.message);return}
+    showAlert('pwd-ok',d.message,'success');$('pwd-old').value='';$('pwd-new').value='';$('pwd-confirm').value='';
+  });
+}
+
+// ---- RESET VOTES ----
+function resetVotes(){
+  if(!confirm('⚠️ Reset ALL votes? This is irreversible!'))return;
+  if(!confirm('Last chance — really reset everything?'))return;
+  const fd=new FormData();fd.append('action','reset_votes');
+  fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{
+    if(d.success){alert('✅ All votes reset.');loadOverview();}
+  });
+}
+
+
+function readCSVFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { $('csv-data').value = e.target.result; };
+  reader.readAsText(file);
+}
+
+function bulkImport() {
+  const csv = $('csv-data').value.trim();
+  if (!csv) { showAlert('bulk-err', 'Please paste CSV data or upload a file.'); return; }
+  const fd = new FormData();
+  fd.append('action', 'bulk_import');
+  fd.append('csv_data', csv);
+  fetch(API, {method:'POST', body:fd}).then(r=>r.json()).then(d=>{
+    if (!d.success) { showAlert('bulk-err', d.message); return; }
+    showAlert('bulk-ok', d.message, 'success');
+    if (d.errors && d.errors.length > 0) {
+      $('bulk-ok').textContent += ' Errors: ' + d.errors.join('; ');
+    }
+    $('csv-data').value = '';
+    setTimeout(() => { closeModal('modal-bulk-import'); loadStudents(); }, 2000);
+  });
+}
+
+function esc(s){return String(s).replace(/'/g,"\'").replace(/"/g,'&quot;')}
+
+// Close modals on background click
+document.querySelectorAll('.modal-bg').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')})});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal-bg.open').forEach(m=>m.classList.remove('open'))});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&$('pg-login').classList.contains('active'))adminLogin()});
+</script>
+</body>
+</html>

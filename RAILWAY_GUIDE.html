@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Railway Deployment Guide | KTCM E-Vote</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#1a3aff;--pink:#e91e8c;--navy:#070f4a;--text:#fff;--muted:rgba(255,255,255,0.6);--card:rgba(14,26,80,0.85);--border:rgba(233,30,140,0.2);--green:#10b981;--gold:#f0b429;--red:#f43f5e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);min-height:100vh;padding:32px 16px}
+.wrap{max-width:780px;margin:0 auto}
+.header{text-align:center;margin-bottom:36px}
+.header h1{font-size:1.8rem;font-weight:700;margin-bottom:8px}
+.header h1 span{color:#f472b6}
+.header p{color:var(--muted);font-size:.85rem;line-height:1.6}
+.badge{display:inline-block;background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;padding:5px 16px;border-radius:100px;font-size:.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px}
+.card{background:var(--card);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:24px;margin-bottom:18px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--pink))}
+.step-row{display:flex;gap:14px;align-items:flex-start}
+.step-num{display:flex;align-items:center;justify-content:center;width:36px;height:36px;min-width:36px;background:linear-gradient(135deg,var(--blue),var(--pink));border-radius:50%;font-weight:700;font-size:.9rem}
+.step-body{flex:1}
+.step-title{font-size:1rem;font-weight:700;margin-bottom:8px;color:white}
+.step-desc{font-size:.82rem;color:var(--muted);line-height:1.75}
+.code{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px 16px;font-family:'DM Mono',monospace;font-size:.8rem;color:#6ee7b7;margin:10px 0;word-break:break-all;line-height:1.8}
+.highlight{background:rgba(240,180,41,.12);border:1px solid rgba(240,180,41,.3);border-radius:8px;padding:12px 16px;font-size:.82rem;color:var(--gold);margin:10px 0;line-height:1.7}
+.success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:8px;padding:12px 16px;font-size:.82rem;color:#6ee7b7;margin:10px 0;line-height:1.7}
+.warning{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.25);border-radius:8px;padding:12px 16px;font-size:.82rem;color:#fca5a5;margin:10px 0;line-height:1.7}
+h2{font-size:1.05rem;font-weight:700;margin-bottom:14px}
+h3{font-size:.85rem;font-weight:600;color:#f472b6;margin:12px 0 6px}
+ul,ol{padding-left:18px}
+li{font-size:.82rem;color:var(--muted);margin-bottom:7px;line-height:1.65}
+li strong{color:white}
+a{color:#f472b6}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.compare-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px}
+.compare-label{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.compare-val{font-size:.85rem;font-weight:600}
+.compare-val.good{color:#6ee7b7}
+.compare-val.warn{color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="badge">🚂 Railway Cloud Deployment</div>
+    <h1>KTCM E-Vote on <span>Railway</span></h1>
+    <p>Deploy your PHP + MySQL voting system online in minutes — accessible from anywhere with internet</p>
+  </div>
+
+  <!-- WHAT YOU GET -->
+  <div class="card">
+    <h2>📦 What Railway Gives You (Free)</h2>
+    <div class="compare">
+      <div class="compare-item"><div class="compare-label">Free Credits</div><div class="compare-val good">$5/month</div></div>
+      <div class="compare-item"><div class="compare-label">MySQL DB</div><div class="compare-val good">✅ Built-in</div></div>
+      <div class="compare-item"><div class="compare-label">PHP Support</div><div class="compare-val good">✅ Via Docker</div></div>
+      <div class="compare-item"><div class="compare-label">Custom Domain</div><div class="compare-val good">✅ Free subdomain</div></div>
+      <div class="compare-item"><div class="compare-label">HTTPS/SSL</div><div class="compare-val good">✅ Automatic</div></div>
+      <div class="compare-item"><div class="compare-label">GitHub Deploy</div><div class="compare-val good">✅ Auto-deploy</div></div>
+      <div class="compare-item"><div class="compare-label">Uptime</div><div class="compare-val good">99.9%</div></div>
+      <div class="compare-item"><div class="compare-label">Cost</div><div class="compare-val good">Free ($5 credit)</div></div>
+    </div>
+    <div class="success">✅ $5/month credit is enough to run the voting system all month for free!</div>
+  </div>
+
+  <!-- PREREQUISITES -->
+  <div class="card">
+    <h2>✅ Before You Start — You Need</h2>
+    <ul>
+      <li>A <strong>GitHub account</strong> ✅ (you already have one!)</li>
+      <li>Your <strong>KTCM project pushed to GitHub</strong> (we'll do this first)</li>
+      <li>A <strong>Railway account</strong> (sign up with GitHub — takes 30 seconds)</li>
+    </ul>
+    <div class="highlight">💡 Railway connects directly to your GitHub repo and deploys automatically every time you push changes!</div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="card">
+    <div class="step-row">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Push Project to GitHub First</div>
+        <div class="step-desc">Open VS Code terminal in your ktcm folder and run:</div>
+        <div class="code">git init
+git add .
+git commit -m "KTCM E-Vote Production System"
+git branch -M main
+git remote add origin https://github.com/YOURUSERNAME/ktcm-evote.git
+git push -u origin main</div>
+        <div class="success">✅ Your code is now on GitHub — Railway will pull from here</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card">
+    <div class="step-row">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Create Railway Account</div>
+        <div class="step-desc">
+          <ol>
+            <li>Go to <a href="https://railway.app" target="_blank"><strong>railway.app</strong></a></li>
+            <li>Click <strong>"Login with GitHub"</strong></li>
+            <li>Authorize Railway to access your GitHub</li>
+            <li>You're in! Railway dashboard opens</li>
+          </ol>
+        </div>
+        <div class="success">✅ Signing in with GitHub is the easiest method</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="card">
+    <div class="step-row">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Create New Railway Project</div>
+        <div class="step-desc">
+          <ol>
+            <li>Click <strong>"New Project"</strong> on Railway dashboard</li>
+            <li>Select <strong>"Deploy from GitHub repo"</strong></li>
+            <li>Find and select your <strong>ktcm-evote</strong> repository</li>
+            <li>Railway will detect the <strong>Dockerfile</strong> automatically</li>
+            <li>Click <strong>"Deploy Now"</strong></li>
+          </ol>
+        </div>
+        <div class="highlight">💡 Railway reads your Dockerfile and builds PHP + Apache automatically — no manual server setup needed!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="card">
+    <div class="step-row">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">Add MySQL Database Plugin</div>
+        <div class="step-desc">
+          <ol>
+            <li>In your Railway project click <strong>"+ New"</strong></li>
+            <li>Select <strong>"Database"</strong></li>
+            <li>Choose <strong>"MySQL"</strong></li>
+            <li>Railway creates a MySQL database and connects it automatically</li>
+            <li>Click on the MySQL service → go to <strong>"Variables"</strong> tab</li>
+            <li>You will see: <strong>MYSQLHOST, MYSQLUSER, MYSQLPASSWORD, MYSQLDATABASE, MYSQLPORT</strong></li>
+          </ol>
+        </div>
+        <div class="success">✅ Your config.php already reads these variables automatically — no changes needed!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="card">
+    <div class="step-row">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <div class="step-title">Import Database via Railway MySQL</div>
+        <div class="step-desc">
+          <ol>
+            <li>Click on your <strong>MySQL service</strong> in Railway</li>
+            <li>Go to the <strong>"Data"</strong> tab</li>
+            <li>Click <strong>"Connect"</strong> → copy the connection string</li>
+            <li>Open <strong>TablePlus</strong> or <strong>MySQL Workbench</strong> on your PC</li>
+            <li>Connect using Railway's MySQL credentials</li>
+            <li>Run the contents of <strong>database_complete.sql</strong></li>
+          </ol>
+        </div>
+        <div class="highlight">💡 Alternative: Use Railway's built-in query editor — paste the SQL from database_complete.sql and run it</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="card">
+    <div class="step-row">
+      <div class="step-num">6</div>
+      <div class="step-body">
+        <div class="step-title">Get Your Live URL</div>
+        <div class="step-desc">
+          <ol>
+            <li>Click on your <strong>PHP/Apache service</strong> in Railway</li>
+            <li>Go to <strong>"Settings"</strong> tab</li>
+            <li>Under <strong>"Domains"</strong> click <strong>"Generate Domain"</strong></li>
+            <li>You get a free URL like: <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px">ktcm-evote.up.railway.app</code></li>
+          </ol>
+        </div>
+        <div class="code">🗳️ Student Portal:
+https://ktcm-evote.up.railway.app/index.html
+
+⚙️ Admin Panel:
+https://ktcm-evote.up.railway.app/admin.html</div>
+        <div class="success">✅ HTTPS is automatic — your system is secure out of the box!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 7 -->
+  <div class="card">
+    <div class="step-row">
+      <div class="step-num">7</div>
+      <div class="step-body">
+        <div class="step-title">Hash All PINs on Live Server</div>
+        <div class="step-desc">
+          <ol>
+            <li>Visit: <code style="background:rgba(255,255,255,.08);padding:2px 6px;border-radius:4px">https://ktcm-evote.up.railway.app/hash_generator.php</code></li>
+            <li>Wait for ✅ green success messages</li>
+            <li>Go to GitHub → delete <strong>hash_generator.php</strong> from the repo</li>
+            <li>Railway will auto-redeploy without it</li>
+          </ol>
+        </div>
+        <div class="warning">⚠️ Always delete hash_generator.php after running it on a live server!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTO DEPLOY -->
+  <div class="card">
+    <h2>🔄 Auto-Deploy (Best Feature!)</h2>
+    <p class="step-desc" style="margin-bottom:12px">Every time you push code changes to GitHub, Railway automatically redeploys your site. No manual uploading!</p>
+    <div class="code"># Make a change in VS Code, then:
+git add .
+git commit -m "Updated candidate list"
+git push
+
+# Railway detects the push and redeploys in ~2 minutes ✅</div>
+    <div class="success">✅ This means you can manage the system from anywhere — just push to GitHub!</div>
+  </div>
+
+  <!-- TIPS -->
+  <div class="card">
+    <h2>💡 Pro Tips for Railway</h2>
+    <ul>
+      <li>Generate a <strong>QR code</strong> from your Railway URL at <a href="https://qr.io" target="_blank">qr.io</a> and share with students</li>
+      <li>Railway gives you <strong>usage metrics</strong> — monitor CPU and memory during election</li>
+      <li>Your site stays up <strong>24/7</strong> unlike some free hosts that sleep</li>
+      <li>Add a <strong>custom domain</strong> in Railway settings e.g. <strong>vote.ktcm.ac.ke</strong></li>
+      <li>Check Railway's <strong>logs</strong> if anything goes wrong — very helpful for debugging</li>
+      <li><strong>Change default admin password</strong> before sharing the URL publicly</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

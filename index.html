@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Vote | Kiharu Technical College Murang'a</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:#1a3aff;--blue-2:#0e25c7;--blue-3:#0b1a8a;--blue-dark:#070f4a;
+  --pink:#e91e8c;--pink-2:#c2177a;--pink-light:#f472b6;--pink-pale:rgba(233,30,140,0.12);
+  --white:#ffffff;--off-white:#f0f4ff;
+  --card-bg:rgba(7,15,74,0.82);--card-bg2:rgba(10,20,100,0.7);
+  --text:#ffffff;--text-muted:rgba(255,255,255,0.55);--text-dim:rgba(255,255,255,0.28);
+  --border:rgba(233,30,140,0.25);--border-blue:rgba(26,58,255,0.35);--border-soft:rgba(255,255,255,0.08);
+  --radius-sm:10px;--radius:18px;--radius-lg:28px;
+  --shadow:0 20px 60px rgba(7,15,74,0.7);--shadow-pink:0 8px 32px rgba(233,30,140,0.3);--shadow-blue:0 8px 32px rgba(26,58,255,0.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--blue-dark);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+/* BG */
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.22;animation:orbFloat 14s ease-in-out infinite alternate}
+.bg-orb-1{width:700px;height:700px;background:var(--blue);top:-250px;left:-200px;animation-delay:0s}
+.bg-orb-2{width:500px;height:500px;background:var(--pink);bottom:-150px;right:-150px;animation-delay:-5s}
+.bg-orb-3{width:350px;height:350px;background:#6e44ff;top:35%;left:55%;animation-delay:-9s}
+@keyframes orbFloat{from{transform:translate(0,0) scale(1)}to{transform:translate(25px,-35px) scale(1.08)}}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(233,30,140,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(26,58,255,.05) 1px,transparent 1px);background-size:50px 50px}
+.bg-diagonal{position:absolute;inset:0;background:linear-gradient(135deg,rgba(7,15,74,.95) 0%,rgba(14,37,199,.4) 50%,rgba(7,15,74,.95) 100%)}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:72px;background:rgba(7,15,74,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--border-soft)}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--pink),var(--blue),var(--pink),transparent);opacity:.7}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-logo-wrap{position:relative}
+.brand-logo{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.brand-texts{}
+.brand-name{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:white;line-height:1.1;letter-spacing:.3px}
+.brand-name span{color:var(--pink-light)}
+.brand-sub{font-size:.63rem;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;font-family:'DM Mono',monospace;margin-top:2px}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.user-chip{display:none;align-items:center;gap:8px;background:var(--pink-pale);border:1px solid var(--border);padding:6px 14px;border-radius:100px;font-size:.8rem;font-weight:500;color:var(--pink-light)}
+.user-chip.show{display:flex}
+.btn-logout{display:none;padding:8px 16px;background:rgba(233,30,140,.15);border:1px solid rgba(233,30,140,.35);color:var(--pink-light);border-radius:100px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-logout.show{display:block}
+.btn-logout:hover{background:rgba(233,30,140,.28)}
+
+/* HERO */
+.hero{position:relative;z-index:1;padding:52px 24px 36px;text-align:center;border-bottom:1px solid var(--border-soft);overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(26,58,255,.08),transparent)}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--pink-pale);border:1px solid var(--border);padding:7px 18px;border-radius:100px;font-size:.72rem;font-weight:600;color:var(--pink-light);letter-spacing:2px;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:22px}
+.hero-badge::before{content:'●';font-size:8px;animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.hero-school{font-size:.78rem;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:14px}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(1.9rem,5vw,3.2rem);font-weight:900;line-height:1.1;margin-bottom:10px}
+.hero h1 .line1{color:white}
+.hero h1 .line2{background:linear-gradient(135deg,var(--pink-light),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:.85rem;color:var(--text-muted);max-width:480px;margin:0 auto;line-height:1.6}
+
+/* DECO STRIPE */
+.stripe{height:4px;background:linear-gradient(90deg,var(--blue-3),var(--blue),var(--pink),var(--blue),var(--blue-3));position:relative;z-index:1}
+
+/* STATS TICKER */
+.ticker{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(10,20,100,.6);border-bottom:1px solid var(--border-soft)}
+.ticker-item{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 12px;border-right:1px solid var(--border-soft);position:relative;overflow:hidden;transition:background .3s}
+.ticker-item:last-child{border-right:none}
+.ticker-item:hover{background:rgba(233,30,140,.08)}
+.ticker-item::before{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--pink);transition:width .3s}
+.ticker-item:hover::before{width:80%}
+.ticker-num{font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:500;line-height:1;background:linear-gradient(135deg,white,var(--pink-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ticker-label{font-size:.63rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:2px;margin-top:5px}
+
+/* COUNTDOWN */
+.countdown{position:relative;z-index:1;background:linear-gradient(135deg,rgba(7,15,74,.9),rgba(14,37,199,.5));border-bottom:1px solid var(--border-soft);padding:22px 28px;display:flex;align-items:center;justify-content:center;gap:36px;flex-wrap:wrap}
+.cd-label{font-size:.68rem;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase;font-family:'DM Mono',monospace}
+.cd-units{display:flex;gap:8px;align-items:center}
+.cd-block{background:rgba(10,20,100,.8);border:1px solid var(--border-blue);border-radius:var(--radius-sm);padding:12px 18px;text-align:center;min-width:62px;box-shadow:0 4px 16px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05)}
+.cd-num{display:block;font-family:'DM Mono',monospace;font-size:1.9rem;font-weight:500;line-height:1;background:linear-gradient(135deg,white,var(--pink-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.cd-lbl{font-size:.58rem;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+.cd-sep{font-size:1.5rem;color:var(--pink);opacity:.5;font-weight:300}
+
+/* TURNOUT */
+.turnout{position:relative;z-index:1;background:rgba(7,15,74,.7);border-bottom:1px solid var(--border-soft);padding:14px 32px;display:flex;align-items:center;gap:16px}
+.turnout-label{font-size:.72rem;color:var(--text-muted);white-space:nowrap;font-family:'DM Mono',monospace;letter-spacing:1px}
+.turnout-track{flex:1;height:7px;background:rgba(255,255,255,.07);border-radius:100px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.3)}
+.turnout-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--blue),var(--pink));transition:width 1.5s cubic-bezier(.16,1,.3,1);box-shadow:0 0 10px rgba(233,30,140,.5)}
+.turnout-pct{font-size:.82rem;font-weight:600;font-family:'DM Mono',monospace;background:linear-gradient(135deg,white,var(--pink-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;min-width:42px}
+
+/* MAIN */
+.main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:40px 20px 80px}
+.page{display:none}.page.active{display:block;animation:pageIn .5s cubic-bezier(.16,1,.3,1)}
+@keyframes pageIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+/* GLASS CARD */
+.glass{background:var(--card-bg);backdrop-filter:blur(20px);border:1px solid var(--border-soft);border-radius:var(--radius);box-shadow:var(--shadow);padding:36px;margin-bottom:24px;position:relative;overflow:hidden}
+.glass::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--pink),var(--blue),transparent)}
+
+/* LOGIN */
+.login-wrap{max-width:440px;margin:0 auto}
+.login-icon-wrap{width:84px;height:84px;margin:0 auto 24px;background:linear-gradient(135deg,rgba(26,58,255,.25),rgba(233,30,140,.2));border:2px solid var(--border);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;box-shadow:var(--shadow-pink),var(--shadow-blue)}
+.login-title{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;text-align:center;color:white;margin-bottom:6px}
+.login-sub{text-align:center;color:var(--text-muted);font-size:.83rem;margin-bottom:32px;line-height:1.5}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:.7rem;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;font-family:'DM Mono',monospace}
+.field input{width:100%;padding:14px 18px;background:rgba(255,255,255,.05);border:1px solid var(--border-soft);border-radius:var(--radius-sm);color:white;font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:all .25s}
+.field input::placeholder{color:var(--text-dim)}
+.field input:focus{border-color:var(--pink);background:rgba(233,30,140,.06);box-shadow:0 0 0 3px rgba(233,30,140,.12)}
+.btn-primary{width:100%;padding:16px;background:linear-gradient(135deg,var(--blue),var(--pink));color:white;border:none;border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .25s;box-shadow:0 4px 24px rgba(233,30,140,.35),0 4px 24px rgba(26,58,255,.25);position:relative;overflow:hidden;letter-spacing:.3px}
+.btn-primary::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.12),transparent);opacity:0;transition:opacity .2s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(233,30,140,.45),0 8px 32px rgba(26,58,255,.35)}
+.btn-primary:hover::after{opacity:1}
+.btn-primary:active{transform:translateY(0)}
+.btn-outline{padding:10px 20px;background:transparent;color:var(--text-muted);border:1px solid var(--border-soft);border-radius:100px;font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-outline:hover{border-color:var(--pink);color:var(--pink-light);background:var(--pink-pale)}
+.alert{padding:12px 16px;border-radius:var(--radius-sm);font-size:.83rem;margin-bottom:18px;display:none;font-weight:500}
+.alert-error{background:rgba(239,68,68,.12);color:#fca5a5;border:1px solid rgba(239,68,68,.25)}
+.alert-success{background:rgba(16,185,129,.12);color:#6ee7b7;border:1px solid rgba(16,185,129,.25)}
+.login-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+.divider-line{height:1px;background:var(--border-soft);margin:28px 0}
+
+/* SECTION HEAD */
+.section-head{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border-soft);display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.section-head h2{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:white}
+.section-head p{font-size:.78rem;color:var(--text-muted);margin-top:4px}
+
+/* POS TABS */
+.pos-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.pos-tab{padding:7px 15px;border-radius:100px;background:rgba(255,255,255,.04);border:1px solid var(--border-soft);color:var(--text-muted);font-size:.78rem;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.pos-tab:hover{border-color:var(--pink);color:var(--pink-light)}
+.pos-tab.done{border-color:rgba(16,185,129,.5);color:#6ee7b7;background:rgba(16,185,129,.1)}
+
+/* POSITION CARD */
+.pos-card{margin-bottom:28px}
+.pos-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.pos-num{width:46px;height:46px;flex-shrink:0;background:linear-gradient(135deg,var(--blue),var(--pink));border-radius:13px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:white;box-shadow:var(--shadow-pink)}
+.pos-info h3{font-size:1.05rem;font-weight:600;color:white}
+.pos-info p{font-size:.75rem;color:var(--text-muted);margin-top:3px}
+.pos-check{margin-left:auto;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;padding:5px 14px;border-radius:100px;font-size:.72rem;font-weight:600;letter-spacing:.5px;display:none}
+.pos-check.show{display:block}
+
+/* CANDIDATE CARDS */
+.cand-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:14px}
+.cand-card{background:rgba(255,255,255,.03);border:1px solid var(--border-soft);border-radius:var(--radius);padding:24px 16px;text-align:center;cursor:pointer;transition:all .3s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden}
+.cand-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--pink-pale),rgba(26,58,255,.08));opacity:0;transition:opacity .3s}
+.cand-card:hover{border-color:rgba(233,30,140,.4);transform:translateY(-5px);box-shadow:0 14px 40px rgba(0,0,0,.5),0 0 0 1px rgba(233,30,140,.2)}
+.cand-card:hover::before{opacity:1}
+.cand-card.selected{border-color:var(--pink);box-shadow:0 0 0 2px var(--pink),0 14px 40px rgba(233,30,140,.25);background:rgba(233,30,140,.06)}
+.cand-card.selected::before{opacity:1}
+.selected-ring{position:absolute;top:12px;right:12px;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--pink));color:white;display:none;align-items:center;justify-content:center;font-size:12px;font-weight:700;box-shadow:0 2px 8px rgba(233,30,140,.4)}
+.cand-card.selected .selected-ring{display:flex}
+.cand-avatar{width:72px;height:72px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;color:white;position:relative;z-index:1;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.av-1{background:linear-gradient(135deg,var(--blue),var(--pink))}
+.av-2{background:linear-gradient(135deg,#7c3aed,var(--pink))}
+.av-3{background:linear-gradient(135deg,var(--blue-2),#06b6d4)}
+.av-4{background:linear-gradient(135deg,var(--pink),#f97316)}
+.av-5{background:linear-gradient(135deg,#059669,var(--blue))}
+.av-6{background:linear-gradient(135deg,#7c3aed,#06b6d4)}
+.cand-name{font-size:.95rem;font-weight:600;color:white;margin-bottom:4px;position:relative;z-index:1}
+.cand-class{font-size:.72rem;color:var(--text-muted);margin-bottom:14px;position:relative;z-index:1;font-family:'DM Mono',monospace}
+.btn-manifesto{background:rgba(255,255,255,.05);border:1px solid var(--border-soft);color:var(--text-muted);font-size:.72rem;font-weight:500;padding:6px 14px;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;position:relative;z-index:1}
+.btn-manifesto:hover{border-color:var(--pink);color:var(--pink-light);background:var(--pink-pale)}
+
+/* SUBMIT */
+.submit-area{text-align:center;padding:32px;background:rgba(10,20,100,.5);border:1px solid var(--border-soft);border-radius:var(--radius);margin-top:8px;position:relative;overflow:hidden}
+.submit-area::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--pink),var(--blue))}
+.progress-text{font-size:.82rem;color:var(--text-muted);margin-bottom:20px;font-family:'DM Mono',monospace}
+.progress-text strong{background:linear-gradient(135deg,white,var(--pink-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.submit-note{font-size:.72rem;color:var(--text-dim);margin-top:12px}
+
+/* RESULTS */
+.results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:14px;margin-bottom:28px}
+.res-stat{background:rgba(10,20,100,.6);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:20px 14px;text-align:center;transition:transform .2s}
+.res-stat:hover{transform:translateY(-3px)}
+.res-stat-num{font-family:'DM Mono',monospace;font-size:1.8rem;font-weight:500;background:linear-gradient(135deg,white,var(--pink-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.res-stat-label{font-size:.63rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:6px}
+.result-position{margin-bottom:32px}
+.result-pos-title{font-size:.68rem;text-transform:uppercase;letter-spacing:2px;color:var(--text-muted);font-family:'DM Mono',monospace;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border-soft)}
+.result-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.res-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;color:white;flex-shrink:0}
+.res-info{flex:1}
+.res-name-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.res-name{font-size:.88rem;font-weight:600}
+.leading-pill{background:linear-gradient(135deg,var(--blue),var(--pink));color:white;font-size:.62rem;font-weight:700;padding:2px 10px;border-radius:100px;letter-spacing:.5px}
+.res-track{background:rgba(255,255,255,.06);border-radius:100px;height:8px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.3)}
+.res-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--blue-2),#6e44ff);transition:width 1.4s cubic-bezier(.16,1,.3,1)}
+.res-fill.top{background:linear-gradient(90deg,var(--blue),var(--pink));box-shadow:0 0 10px rgba(233,30,140,.4)}
+.res-pct{font-family:'DM Mono',monospace;font-size:.8rem;font-weight:500;color:var(--pink-light);min-width:46px;text-align:right}
+
+/* RECEIPT */
+.receipt-wrap{max-width:460px;margin:0 auto}
+.receipt-box{border:2px dashed rgba(233,30,140,.4);border-radius:var(--radius-lg);padding:40px 32px;text-align:center;background:linear-gradient(135deg,rgba(233,30,140,.05),rgba(26,58,255,.05));position:relative}
+.receipt-box::before,.receipt-box::after{content:'';position:absolute;width:26px;height:26px;background:var(--blue-dark);border-radius:50%;top:50%;transform:translateY(-50%)}
+.receipt-box::before{left:-15px}.receipt-box::after{right:-15px}
+.receipt-icon{font-size:3rem;display:block;margin-bottom:16px}
+.receipt-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:white;margin-bottom:6px}
+.receipt-sub{font-size:.8rem;color:var(--text-muted);margin-bottom:24px}
+.receipt-code-box{background:rgba(233,30,140,.1);border:1px solid var(--border);border-radius:var(--radius-sm);padding:18px;font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:500;background:linear-gradient(135deg,white,var(--pink-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px;margin-bottom:20px}
+.receipt-note{font-size:.78rem;color:var(--text-muted);line-height:1.7}
+.receipt-actions{display:flex;gap:10px;justify-content:center;margin-top:24px;flex-wrap:wrap}
+
+/* VERIFY */
+.verify-wrap{max-width:480px;margin:0 auto}
+.verify-item{display:flex;align-items:center;gap:14px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:10px}
+.verify-icon{font-size:1.3rem}
+.verify-pos{font-size:.85rem;font-weight:600;color:#6ee7b7}
+.verify-time{font-size:.72rem;color:var(--text-muted);font-family:'DM Mono',monospace;margin-top:2px}
+
+/* VOTED STATE */
+.voted-state{background:linear-gradient(135deg,rgba(26,58,255,.15),rgba(233,30,140,.1));border:1px solid rgba(233,30,140,.2);border-radius:var(--radius-lg);padding:40px 32px;text-align:center;margin-bottom:24px;position:relative;overflow:hidden}
+.voted-state::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--pink),var(--blue))}
+.voted-icon{font-size:3.5rem;display:block;margin-bottom:16px}
+.voted-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:white;margin-bottom:8px}
+.voted-sub{font-size:.85rem;color:var(--text-muted);margin-bottom:20px}
+.voted-receipt{display:inline-block;background:rgba(233,30,140,.1);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 24px;font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:500;background:linear-gradient(135deg,white,var(--pink-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:3px}
+
+/* MODALS */
+.modal-bg{position:fixed;inset:0;z-index:500;background:rgba(7,15,74,.92);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal-box{background:rgba(10,20,100,.95);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px;max-width:500px;width:100%;animation:modalIn .4s cubic-bezier(.16,1.4,.3,1);position:relative}
+.modal-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--pink),var(--blue))}
+@keyframes modalIn{from{opacity:0;transform:scale(.85) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-tag{font-size:.68rem;text-transform:uppercase;letter-spacing:2px;color:var(--pink-light);font-family:'DM Mono',monospace;margin-bottom:8px}
+.modal-name{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:white;margin-bottom:20px}
+.modal-text{font-size:.88rem;line-height:1.85;color:var(--text-muted);background:rgba(255,255,255,.03);border-left:3px solid var(--pink);padding:16px 20px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:24px}
+.modal-close{position:absolute;top:18px;right:18px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid var(--border-soft);color:var(--text-muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.modal-close:hover{background:rgba(233,30,140,.2);color:var(--pink-light);border-color:var(--border)}
+.winner-box{background:rgba(10,20,100,.97);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px 32px;text-align:center;max-width:460px;width:100%;animation:modalIn .5s cubic-bezier(.16,1.4,.3,1);position:relative;overflow:hidden}
+.winner-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--pink),var(--blue))}
+.winner-crown{font-size:4rem;display:block;margin-bottom:8px}
+.winner-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:white;margin-bottom:24px}
+.winner-entry{background:rgba(233,30,140,.08);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:10px;text-align:left}
+.winner-pos{font-size:.68rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);font-family:'DM Mono',monospace}
+.winner-name{font-size:1rem;font-weight:600;background:linear-gradient(135deg,white,var(--pink-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-top:4px}
+
+/* MISC */
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.25);border-top-color:white;border-radius:50%;animation:rotate .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes rotate{to{transform:rotate(360deg)}}
+.confetti-p{position:fixed;pointer-events:none;z-index:9999;border-radius:3px;animation:fall linear forwards}
+@keyframes fall{0%{transform:translateY(-30px) rotate(0deg);opacity:1}100%{transform:translateY(105vh) rotate(540deg);opacity:0}}
+
+/* FOOTER */
+.site-footer{position:relative;z-index:1;background:rgba(7,15,74,.9);border-top:1px solid var(--border-soft);padding:20px 32px;text-align:center;font-size:.72rem;color:var(--text-dim);font-family:'DM Mono',monospace;letter-spacing:.5px}
+.site-footer span{color:var(--pink-light)}
+
+@media(max-width:640px){.cand-grid{grid-template-columns:1fr 1fr}.glass{padding:22px 16px}.topbar{padding:0 14px}.brand-name{font-size:.95rem}.ticker{grid-template-columns:repeat(2,1fr)}.turnout{padding:12px 16px}.countdown{gap:14px}.cd-block{min-width:50px;padding:9px 12px}.cd-num{font-size:1.5rem}}
+@media(max-width:380px){.cand-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="bg-layer">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+  <div class="bg-grid"></div>
+  <div class="bg-diagonal"></div>
+</div>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-logo-wrap">
+      <img src="data:image/png;base64,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" alt="KTCM Logo" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.3);box-shadow:0 4px 16px rgba(233,30,140,0.4),0 0 0 3px rgba(26,58,255,0.3);">
+    </div>
+    <div class="brand-texts">
+      <div class="brand-name">Kiharu <span>Technical</span></div>
+      <div class="brand-sub">College Murang'a · E-Vote System</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="user-chip" id="user-chip">👤 <span id="user-name-text"></span></div>
+    <button class="btn-logout" id="btn-logout" onclick="doLogout()">Sign Out</button>
+  </div>
+</header>
+
+<!-- STRIPE -->
+<div class="stripe"></div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">🟢 Election Live</div>
+  <p class="hero-school">Kiharu Technical College Murang'a</p>
+  <h1><span class="line1">Student Leadership</span><br><span class="line2">Elections 2026</span></h1>
+  <p class="hero-sub" id="hero-sub">Official digital voting platform · Cast your vote securely and anonymously</p>
+</div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-item"><div class="ticker-num" id="t-voters">—</div><div class="ticker-label">Registered</div></div>
+  <div class="ticker-item"><div class="ticker-num" id="t-voted">—</div><div class="ticker-label">Voted</div></div>
+  <div class="ticker-item"><div class="ticker-num" id="t-turnout">—</div><div class="ticker-label">Turnout</div></div>
+  <div class="ticker-item"><div class="ticker-num" id="t-positions">—</div><div class="ticker-label">Positions</div></div>
+</div>
+
+<!-- COUNTDOWN -->
+<div class="countdown">
+  <span class="cd-label">⏱ Voting Closes In</span>
+  <div class="cd-units">
+    <div class="cd-block"><span class="cd-num" id="cd-d">00</span><div class="cd-lbl">Days</div></div>
+    <span class="cd-sep">:</span>
+    <div class="cd-block"><span class="cd-num" id="cd-h">00</span><div class="cd-lbl">Hrs</div></div>
+    <span class="cd-sep">:</span>
+    <div class="cd-block"><span class="cd-num" id="cd-m">00</span><div class="cd-lbl">Min</div></div>
+    <span class="cd-sep">:</span>
+    <div class="cd-block"><span class="cd-num" id="cd-s">00</span><div class="cd-lbl">Sec</div></div>
+  </div>
+</div>
+
+<!-- TURNOUT -->
+<div class="turnout">
+  <span class="turnout-label">VOTER TURNOUT</span>
+  <div class="turnout-track"><div class="turnout-fill" id="turnout-fill" style="width:0%"></div></div>
+  <span class="turnout-pct" id="turnout-pct">0%</span>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- LOGIN -->
+  <div id="pg-login" class="page active">
+    <div class="login-wrap">
+      <div class="glass">
+        <div class="login-icon-wrap">🗳️</div>
+        <h2 class="login-title">Student Portal</h2>
+        <p class="login-sub">Authenticate with your Student ID and PIN to cast your vote</p>
+        <div class="alert alert-error" id="login-err"></div>
+        <div class="field"><label>Student ID</label><input type="text" id="inp-id" placeholder="e.g. KTCM/001/2026" autocomplete="off"></div>
+        <div class="field"><label>PIN</label><input type="password" id="inp-pin" placeholder="Enter your PIN" maxlength="6"></div>
+        <button class="btn-primary" onclick="doLogin()"><span id="login-btn-label">Access Voting Portal →</span></button>
+      </div>
+      <div class="login-actions">
+        <button class="btn-outline" onclick="showPage('pg-results')">📊 Live Results</button>
+        <button class="btn-outline" onclick="showPage('pg-verify')">🔍 Verify Receipt</button>
+        <a href="admin.html" style="text-decoration:none"><button class="btn-outline">⚙️ Admin Panel</button></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- VOTE -->
+  <div id="pg-vote" class="page">
+    <div id="voted-state-wrap" style="display:none">
+      <div class="voted-state">
+        <span class="voted-icon">✅</span>
+        <h3 class="voted-title">Vote Successfully Cast!</h3>
+        <p class="voted-sub">Your ballot has been securely recorded in the system.</p>
+        <div class="voted-receipt" id="voted-receipt-display"></div>
+      </div>
+      <div style="text-align:center;margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn-outline" onclick="showPage('pg-results')">📊 Live Results</button>
+        <button class="btn-outline" onclick="showPage('pg-verify')">🔍 Verify My Vote</button>
+      </div>
+    </div>
+    <div id="vote-form-wrap">
+      <div class="glass">
+        <div class="section-head">
+          <div><h2>Cast Your Vote</h2><p>Select one candidate per position — scroll down to complete all</p></div>
+          <div class="pos-tabs" id="pos-tabs"></div>
+        </div>
+        <div id="positions-wrap"></div>
+        <div id="submit-wrap" style="display:none">
+          <div class="submit-area">
+            <div class="progress-text" id="prog-text"></div>
+            <div class="alert alert-error" id="vote-err"></div>
+            <button class="btn-primary" onclick="submitVote()" id="submit-btn" style="max-width:360px"><span id="submit-label">🗳️ Submit My Vote</span></button>
+            <p class="submit-note">⚠️ Once submitted, your vote cannot be changed or recalled.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="pg-results" class="page">
+    <div class="glass">
+      <div class="section-head">
+        <div><h2>Live Results</h2><p>Auto-refreshes every 15 seconds</p></div>
+        <button class="btn-outline" onclick="showPage('pg-login')">← Back</button>
+      </div>
+      <div class="results-grid" id="res-stats"></div>
+      <div id="res-body"></div>
+    </div>
+  </div>
+
+  <!-- RECEIPT -->
+  <div id="pg-receipt" class="page">
+    <div class="receipt-wrap">
+      <div class="glass">
+        <div class="section-head">
+          <div><h2>Voting Receipt</h2><p>Save this code as proof of your participation</p></div>
+          <button class="btn-outline" onclick="showPage('pg-login')">← Back</button>
+        </div>
+        <div class="receipt-box">
+          <span class="receipt-icon">🧾</span>
+          <h3 class="receipt-title">Vote Confirmed!</h3>
+          <p class="receipt-sub">Your unique receipt code:</p>
+          <div class="receipt-code-box" id="receipt-code-display">—</div>
+          <p class="receipt-note">This code confirms your participation only. Your specific choices remain completely private and anonymous.</p>
+        </div>
+        <div class="receipt-actions">
+          <button class="btn-outline" onclick="copyCode()">📋 Copy Code</button>
+          <button class="btn-outline" onclick="showPage('pg-verify')">🔍 Verify Vote</button>
+          <button class="btn-outline" onclick="showPage('pg-results')">📊 Results</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERIFY -->
+  <div id="pg-verify" class="page">
+    <div class="verify-wrap">
+      <div class="glass">
+        <div class="section-head">
+          <div><h2>Verify Your Vote</h2><p>Confirm your ballot was counted</p></div>
+          <button class="btn-outline" onclick="showPage('pg-login')">← Back</button>
+        </div>
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:24px;line-height:1.7">Enter your receipt code below to confirm your vote was recorded. Your choices remain private.</p>
+        <div class="field"><label>Receipt Code</label><input type="text" id="verify-inp" placeholder="e.g. VR-A1B2C3D4" style="font-family:'DM Mono',monospace;letter-spacing:2px;text-transform:uppercase"></div>
+        <button class="btn-primary" onclick="verifyVote()" style="max-width:220px">Verify Now →</button>
+        <div class="alert alert-error" id="verify-err" style="margin-top:16px"></div>
+        <div id="verify-result" style="display:none;margin-top:20px">
+          <div class="alert alert-success" id="verify-ok" style="display:block;margin-bottom:14px"></div>
+          <div id="verify-items"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  © 2026 <span>Kiharu Technical College Murang'a</span> · E-Vote System · All Rights Reserved
+</footer>
+
+<!-- MANIFESTO MODAL -->
+<div class="modal-bg" id="manifesto-bg" onclick="closeManifesto(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeManifestoModal()">✕</button>
+    <div class="modal-tag" id="m-pos"></div>
+    <div class="modal-name" id="m-name"></div>
+    <div class="modal-text" id="m-text"></div>
+    <button class="btn-primary" onclick="closeManifestoModal()">Close</button>
+  </div>
+</div>
+
+<!-- WINNER MODAL -->
+<div class="modal-bg" id="winner-bg">
+  <div class="winner-box">
+    <span class="winner-crown">👑</span>
+    <h2 class="winner-title">Election Results Announced!</h2>
+    <div id="winner-list"></div>
+    <div style="margin-top:20px"><button class="btn-primary" onclick="document.getElementById('winner-bg').classList.remove('open');showPage('pg-results')">View Full Results →</button></div>
+  </div>
+</div>
+
+<script>
+const API='api.php';
+let positions=[],selections={},myReceipt='',cdInterval=null,resInterval=null;
+const avColors=['av-1','av-2','av-3','av-4','av-5','av-6'];
+function getFingerprint(){const n=navigator;const raw=[n.userAgent,n.language,screen.width,screen.height,screen.colorDepth,new Date().getTimezoneOffset()].join('|');let h=0;for(let i=0;i<raw.length;i++){h=((h<<5)-h)+raw.charCodeAt(i);h|=0}return'FP'+Math.abs(h).toString(16).toUpperCase()}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='pg-results')startResults();else stopResults();window.scrollTo({top:0,behavior:'smooth'})}
+function showErr(id,msg){const el=document.getElementById(id);el.textContent=msg;el.style.display='block';setTimeout(()=>el.style.display='none',5000)}
+window.addEventListener('DOMContentLoaded',()=>{loadElection();loadTurnout();setInterval(loadTurnout,15000)});
+function loadElection(){fetch(`${API}?action=get_election`).then(r=>r.json()).then(d=>{if(d.success&&d.election){startCountdown(d.election.end_time)}}).catch(()=>{})}
+function loadTurnout(){fetch(`${API}?action=get_results`).then(r=>r.json()).then(d=>{if(!d.success)return;document.getElementById('t-voters').textContent=d.total_voters;document.getElementById('t-voted').textContent=d.total_voted;document.getElementById('t-turnout').textContent=d.turnout_percent+'%';document.getElementById('t-positions').textContent=d.positions.length;document.getElementById('turnout-fill').style.width=d.turnout_percent+'%';document.getElementById('turnout-pct').textContent=d.turnout_percent+'%'}).catch(()=>{})}
+function startCountdown(endStr){if(cdInterval)clearInterval(cdInterval);function tick(){const diff=new Date(endStr)-new Date();if(diff<=0){['cd-d','cd-h','cd-m','cd-s'].forEach(id=>document.getElementById(id).textContent='00');clearInterval(cdInterval);return}const d=Math.floor(diff/86400000),h=Math.floor((diff%86400000)/3600000),m=Math.floor((diff%3600000)/60000),s=Math.floor((diff%60000)/1000);document.getElementById('cd-d').textContent=String(d).padStart(2,'0');document.getElementById('cd-h').textContent=String(h).padStart(2,'0');document.getElementById('cd-m').textContent=String(m).padStart(2,'0');document.getElementById('cd-s').textContent=String(s).padStart(2,'0')}tick();cdInterval=setInterval(tick,1000)}
+function doLogin(){const id=document.getElementById('inp-id').value.trim();const pin=document.getElementById('inp-pin').value.trim();if(!id||!pin){showErr('login-err','Please enter your Student ID and PIN.');return}const lbl=document.getElementById('login-btn-label');lbl.innerHTML='<span class="spin"></span>Verifying...';const fd=new FormData();fd.append('action','login');fd.append('student_id',id);fd.append('pin',pin);fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{lbl.textContent='Access Voting Portal →';if(!d.success){showErr('login-err',d.message);return}document.getElementById('user-name-text').textContent=d.name;document.getElementById('user-chip').classList.add('show');document.getElementById('btn-logout').classList.add('show');if(d.has_voted){showPage('pg-vote');document.getElementById('voted-state-wrap').style.display='block';document.getElementById('vote-form-wrap').style.display='none';document.getElementById('voted-receipt-display').textContent=d.receipt_code||'';myReceipt=d.receipt_code}else{loadCandidates()}}).catch(()=>{lbl.textContent='Access Voting Portal →';showErr('login-err','Connection error. Is XAMPP running?')})}
+function loadCandidates(){fetch(`${API}?action=get_candidates`).then(r=>r.json()).then(d=>{if(!d.success)return;positions=d.positions;selections={};renderVoting(d.positions);showPage('pg-vote');document.getElementById('vote-form-wrap').style.display='block';document.getElementById('voted-state-wrap').style.display='none'})}
+function esc(s){return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n')}
+function renderVoting(pos){document.getElementById('pos-tabs').innerHTML=pos.map((p,i)=>`<button class="pos-tab" id="tab-${p.id}" onclick="jumpTo(${p.id})">${p.title}</button>`).join('');document.getElementById('positions-wrap').innerHTML=pos.map((p,i)=>`<div class="pos-card" id="pc-${p.id}">${i>0?'<div class="divider-line"></div>':''}<div class="pos-header"><div class="pos-num">${i+1}</div><div class="pos-info"><h3>${p.title}</h3><p>${p.description||'Vote for one candidate'}</p></div><div class="pos-check" id="pcheck-${p.id}">✓ Selected</div></div><div class="cand-grid">${p.candidates.map((c,ci)=>`<div class="cand-card" id="cc-${p.id}-${c.id}" onclick="pick(${p.id},${c.id})"><div class="selected-ring">✓</div><div class="cand-avatar ${avColors[ci%avColors.length]}">${c.full_name.charAt(0)}</div><div class="cand-name">${c.full_name}</div><div class="cand-class">${c.class}</div><button class="btn-manifesto" onclick="event.stopPropagation();openManifesto('${esc(c.full_name)}','${esc(p.title)}','${esc(c.manifesto||'No manifesto provided.')}')">📜 Read Manifesto</button></div>`).join('')}</div></div>`).join('');document.getElementById('submit-wrap').style.display='none';updateProg()}
+function pick(posId,candId){if(selections[posId]){const prev=document.getElementById(`cc-${posId}-${selections[posId]}`);if(prev)prev.classList.remove('selected')}selections[posId]=candId;document.getElementById(`cc-${posId}-${candId}`).classList.add('selected');const tab=document.getElementById(`tab-${posId}`);if(tab)tab.classList.add('done');const chk=document.getElementById(`pcheck-${posId}`);if(chk)chk.classList.add('show');updateProg()}
+function updateProg(){const total=positions.length,done=Object.keys(selections).length;document.getElementById('prog-text').innerHTML=`Selected candidates for <strong>${done}</strong> of <strong>${total}</strong> positions`;const sw=document.getElementById('submit-wrap');if(done===total){sw.style.display='block';sw.scrollIntoView({behavior:'smooth',block:'center'})}}
+function jumpTo(posId){document.getElementById(`pc-${posId}`).scrollIntoView({behavior:'smooth',block:'start'})}
+function submitVote(){if(Object.keys(selections).length<positions.length){showErr('vote-err','Please vote for ALL positions.');return}if(!confirm('Submit your votes now?\n\nThis cannot be undone.'))return;const lbl=document.getElementById('submit-label');const btn=document.getElementById('submit-btn');lbl.innerHTML='<span class="spin"></span>Submitting...';btn.disabled=true;const fd=new FormData();fd.append('action','cast_vote');fd.append('fingerprint',getFingerprint());Object.keys(selections).forEach(pid=>fd.append(`votes[${pid}]`,selections[pid]));fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{lbl.textContent='🗳️ Submit My Vote';btn.disabled=false;if(!d.success){showErr('vote-err',d.message);return}myReceipt=d.receipt_code;document.getElementById('receipt-code-display').textContent=d.receipt_code;confetti();showPage('pg-receipt');loadTurnout()}).catch(()=>{lbl.textContent='🗳️ Submit My Vote';btn.disabled=false;showErr('vote-err','Connection error.')})}
+function startResults(){stopResults();fetchResults();resInterval=setInterval(fetchResults,15000)}
+function stopResults(){if(resInterval){clearInterval(resInterval);resInterval=null}}
+function fetchResults(){fetch(`${API}?action=get_results`).then(r=>r.json()).then(d=>{if(!d.success)return;document.getElementById('res-stats').innerHTML=`<div class="res-stat"><div class="res-stat-num">${d.total_voters}</div><div class="res-stat-label">Registered</div></div><div class="res-stat"><div class="res-stat-num">${d.total_voted}</div><div class="res-stat-label">Voted</div></div><div class="res-stat"><div class="res-stat-num">${d.turnout_percent}%</div><div class="res-stat-label">Turnout</div></div><div class="res-stat"><div class="res-stat-num">${d.positions.length}</div><div class="res-stat-label">Positions</div></div>`;document.getElementById('res-body').innerHTML=d.positions.map((pos,pi)=>`<div class="result-position"><div class="result-pos-title">${pos.title}</div>${pos.candidates.map((c,ci)=>`<div class="result-row"><div class="res-avatar ${avColors[ci%avColors.length]}">${c.full_name.charAt(0)}</div><div class="res-info"><div class="res-name-row"><span class="res-name">${c.full_name}</span>${c.is_leading&&d.total_voted>0?'<span class="leading-pill">🏆 Leading</span>':''}</div><div class="res-track"><div class="res-fill ${c.is_leading&&d.total_voted>0?'top':''}" style="width:${c.percentage}%"></div></div></div><div class="res-pct">${c.percentage}%</div></div>`).join('')}</div>${pi<d.positions.length-1?'<div class="divider-line"></div>':''}`).join('')}).catch(()=>{})}
+function verifyVote(){const code=document.getElementById('verify-inp').value.trim().toUpperCase();if(!code){showErr('verify-err','Enter a receipt code.');return}const fd=new FormData();fd.append('action','verify_receipt');fd.append('receipt',code);fetch(API,{method:'POST',body:fd}).then(r=>r.json()).then(d=>{const res=document.getElementById('verify-result');if(!d.success){showErr('verify-err',d.message);res.style.display='none';return}document.getElementById('verify-err').style.display='none';document.getElementById('verify-ok').textContent='✅ '+d.message;document.getElementById('verify-items').innerHTML=d.entries.map(e=>`<div class="verify-item"><span class="verify-icon">✅</span><div><div class="verify-pos">${e.position}</div><div class="verify-time">Recorded: ${e.voted_at}</div></div></div>`).join('');res.style.display='block'})}
+function openManifesto(name,pos,text){document.getElementById('m-name').textContent=name;document.getElementById('m-pos').textContent=pos;document.getElementById('m-text').textContent=text;document.getElementById('manifesto-bg').classList.add('open')}
+function closeManifesto(e){if(e.target===document.getElementById('manifesto-bg'))closeManifestoModal()}
+function closeManifestoModal(){document.getElementById('manifesto-bg').classList.remove('open')}
+function copyCode(){const code=document.getElementById('receipt-code-display').textContent;navigator.clipboard.writeText(code).then(()=>alert('Copied: '+code))}
+function doLogout(){const fd=new FormData();fd.append('action','logout');fetch(API,{method:'POST',body:fd}).then(()=>{document.getElementById('user-chip').classList.remove('show');document.getElementById('btn-logout').classList.remove('show');selections={};showPage('pg-login')})}
+function confetti(){const colors=['#1a3aff','#e91e8c','#6e44ff','#ffffff','#f472b6','#60a5fa'];for(let i=0;i<90;i++){setTimeout(()=>{const el=document.createElement('div');el.className='confetti-p';const size=6+Math.random()*10;el.style.cssText=`left:${Math.random()*100}vw;top:-20px;width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${2+Math.random()*2.5}s;border-radius:${Math.random()>.5?'50%':'3px'}`;document.body.appendChild(el);setTimeout(()=>el.remove(),5000)},i*25)}}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('pg-login').classList.contains('active'))doLogin();if(e.key==='Enter'&&document.getElementById('pg-verify').classList.contains('active'))verifyVote();if(e.key==='Escape'){closeManifestoModal();document.getElementById('winner-bg').classList.remove('open')}});
+</script>
+</body>
+</html>
